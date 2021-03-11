@@ -21,4 +21,4 @@ jobs:
       with:
         name: adhoc-ipa
         # Path to the release files
-        path: build/ios/ipa/*.ipa
+        path: /Users/runner/work/auditplus-mobile/auditplus-mobile/build/ios/iphoneos/Runner.app
