@@ -9,11 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-ruby@v1
+      - name: Deploy
+        if: (github.base_ref == 'master' && github.event_name == 'pull_request')
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.2.1
         with:
-          ruby-version: '2.7'
-      - name: setup fastlane
-        run: bundle install
-      - name: distribute to firebase
-        run: bundle exec fastlane firebase_distribution
-        env:
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          appId: ${{secrets.FIREBASE_APPID}}
+          token: ${{secrets.FIREBASE_TOKEN}}
+          testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com"
+          release_notes: "a new version"
+          file: ./build/Runner/Runner.ipa
