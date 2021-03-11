@@ -1,4 +1,4 @@
-name: Distribute to firebase
+name: IOSBuilder
 
 on:
   workflow_dispatch:
@@ -21,4 +21,4 @@ jobs:
       with:
         name: adhoc-ipa
         # Path to the release files
-        path: build/ios/ipa/auditplus.ipa
+        path: build/ios/ipa/*.ipa
