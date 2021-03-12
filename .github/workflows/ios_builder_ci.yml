@@ -21,7 +21,7 @@ jobs:
     - name: Download bundle dependencies
       run: |
         gem install bundler:2.0.2
-        bundle config path vendor/bundle
+        bundle config path https://github.com/ManikandaNattar/auditplus-mobile/ios
         bundle install
     - name: Create Firebase Service Credentials file
       run: |
