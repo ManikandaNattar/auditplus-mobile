@@ -14,6 +14,7 @@ jobs:
         ruby-version: '2.6'
     - name: Install bundle
       run: |
+          bundle config path ios
           bundle install
     - name: Create Firebase Service Credentials file
       run: |
