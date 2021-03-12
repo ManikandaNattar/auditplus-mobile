@@ -16,11 +16,11 @@ or alternatively using `brew install fastlane`
 
 # Available Actions
 ## iOS
-### ios custom_lane
+### ios firebase_distribution
 ```
-fastlane ios custom_lane
+fastlane ios firebase_distribution
 ```
-Description of what the lane does
+Deploy to Firebase App Distribution
 
 ----
 
