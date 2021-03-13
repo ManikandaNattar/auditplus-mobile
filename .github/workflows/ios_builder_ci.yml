@@ -12,8 +12,19 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
+    - name: Fetch credential file from secrets
+      id: fetch_credential_file
+      uses: timheuer/base64-to-file@v1
+      with:
+          encodedString: ${{ secrets.FIREBASE_CREDENTIALS }}
+          fileName: 'credential_file.json'
+      env:
+          FIREBASE_CREDENTIALS: 'credential_file.json'
     - name: Distribute app with Firebase
       run: |
             cd ios
             fastlane firebase_distribution
+      env:
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          
 
