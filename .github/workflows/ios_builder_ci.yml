@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Install pods
-      run: cd ios && pod install
+      run: cd ios
     - name: Create Firebase Service Credentials file
       run: |
           echo "$FIREBASE_CREDENTIALS" > GoogleService-Info.plist.b64
