@@ -18,9 +18,8 @@ jobs:
     - run: flutter pub get
     - run: flutter build apk
     - run: flutter build ios --release --no-codesign
-    - uses: actions/checkout@v1
-      with:
-       path: ios
+    - name: Install pods
+      run: cd ios && pod install
     - name: Create Firebase Service Credentials file
       run: |
           echo "$FIREBASE_CREDENTIALS" > GoogleService-Info.plist.b64
