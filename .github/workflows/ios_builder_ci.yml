@@ -12,7 +12,6 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
-        bundler-cache: true 
     - name: Distribute app with Firebase
       run: |
             cd ios
