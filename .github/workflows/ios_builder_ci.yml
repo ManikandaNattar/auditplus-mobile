@@ -18,6 +18,10 @@ jobs:
     - run: flutter pub get
     - run: flutter build apk
     - run: flutter build ios --release --no-codesign
+    - name: Geetting IOS Folder
+    - uses: actions/checkout@v1
+      with:
+       path: ios
     - name: Create Firebase Service Credentials file
       run: |
           echo "$FIREBASE_CREDENTIALS" > GoogleService-Info.plist.b64
@@ -25,7 +29,6 @@ jobs:
       env:
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
     - name: Distribute app with Firebase
-      run: |
-            bundle exec fastlane distribute
+      run:  bundle exec fastlane distribute
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
