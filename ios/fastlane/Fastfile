@@ -19,7 +19,8 @@ platform :ios do
   desc "Deploy to Firebase App Distribution"
   lane :firebase_distribution do
     firebase_app_distribution(
-      app: '1:504251462470:ios:93532b483d1448a6eeeb47',
+      service_credentials_file: ENV['FIREBASE_CREDENTIALS'],
+      app: ENV['FIREBASE_APP_ID'],
       release_notes_file: "Initial Release",
       testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
     )
