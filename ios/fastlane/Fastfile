@@ -18,8 +18,6 @@ default_platform(:ios)
 platform :ios do
   desc "Deploy to Firebase App Distribution"
   lane :firebase_distribution do
-    gym(scheme: "FastlaneTest")
-    deliver(force: true)
     firebase_app_distribution(
         app: '1:504251462470:ios:93532b483d1448a6eeeb47',
         release_notes_file: "Initial Release",
