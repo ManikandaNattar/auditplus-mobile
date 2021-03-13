@@ -12,8 +12,6 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
-    - name: Install pods
-      run: cd ios 
     - name: Create Firebase Service Credentials file
       run: |
           echo "$FIREBASE_CREDENTIALS" > GoogleService-Info.plist.b64
@@ -21,6 +19,8 @@ jobs:
       env:
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
     - name: Distribute app with Firebase
-      run:  bundle exec fastlane distribute
+      run: |
+            cd ios && pod install
+            bundle exec fastlane distribute
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
