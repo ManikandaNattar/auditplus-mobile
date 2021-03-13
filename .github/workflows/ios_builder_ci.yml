@@ -22,6 +22,6 @@ jobs:
     - name: Distribute app with Firebase
       run: |
             cd ios
-            fastlane distribute
+            fastlane firebase_distribution
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
