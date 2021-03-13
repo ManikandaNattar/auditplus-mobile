@@ -32,6 +32,7 @@ jobs:
           FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
     - name: Distribute app with Firebase
       run: |
+            gem install fastlane
             fastlane init
             bundle exec fastlane distribute
       env:
