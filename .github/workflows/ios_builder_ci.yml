@@ -12,12 +12,6 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.6'
-    - name: Fetch credential file from secrets
-      id: fetch_credential_file
-      uses: timheuer/base64-to-file@v1
-      with:
-          encodedString: ${{ secrets.FIREBASE_CREDENTIALS }}
-          fileName: 'GoogleService-Info.plist'
     - name: Distribute app with Firebase
       run: |
             cd ios
@@ -25,6 +19,5 @@ jobs:
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
-          FIREBASE_CREDENTIALS: ${{ steps.fetch_credential_file.outputs.filePath }}
           
 
