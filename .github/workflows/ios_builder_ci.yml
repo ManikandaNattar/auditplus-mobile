@@ -27,6 +27,6 @@ jobs:
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
-          FIREBASE_CREDENTIALS: 'GoogleService-Info.plist'
+          FIREBASE_CREDENTIALS: ${{ steps.fetch_credential_file.outputs.filePath }}
           
 
