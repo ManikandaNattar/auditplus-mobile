@@ -11,7 +11,8 @@
 # sdk("iphoneos9.0")
 
 scheme("Runner")
-
+clean(true)
+silent(true)
 workspace("Runner.xcworkspace")
 configuration("Debug")
 output_directory("./build")    # store the ipa in this folder
