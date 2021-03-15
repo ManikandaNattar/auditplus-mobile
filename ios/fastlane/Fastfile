@@ -18,18 +18,16 @@ default_platform(:ios)
 platform :ios do
   desc "Deploy to Firebase App Distribution"
   lane :firebase_distribution do
-    build_app(
-      scheme: "Runner",
-      archive_path: "./build/Runner.xcarchive",
-      export_method: "development",
-      output_directory: "./build/Runner"
-  )
+    update_code_signing_settings(
+  use_automatic_signing: true,
+ )
+    gym(scheme: "Runner")
     firebase_app_distribution(
       service_credentials_file: ENV['FIREBASE_CREDENTIALS'],
       app: ENV['FIREBASE_APP_ID'],
       release_notes_file: "Initial Release",
       testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
-      ipa_path: "./build/Runner/Runner.ipa"
+      ipa:"./build/io.auditplus.mobile.ipa"
     )
   end
 end
