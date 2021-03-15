@@ -18,7 +18,8 @@ default_platform(:ios)
 platform :ios do
   desc "Deploy to Firebase App Distribution"
   lane :firebase_distribution do
-    match(type: "adhoc",readonly:true)
+    enable_automatic_code_signing(path: "Runner.xcodeproj")
+    match(type: "adhoc")
     gym(scheme: "Runner")
     firebase_app_distribution(
       service_credentials_file: ENV['FIREBASE_CREDENTIALS'],
