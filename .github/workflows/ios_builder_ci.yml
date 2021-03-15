@@ -19,5 +19,6 @@ jobs:
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
+          ipa_path: '/Users/runner/work/auditplus-mobile/auditplus-mobile/build/ios/iphoneos/Runner.ipa'
           
 
