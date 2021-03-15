@@ -13,6 +13,7 @@
 scheme("Runner")
 
 clean(true)
-
+workspace("Runner.xcworkspace")
+configuration("Release")
 output_directory("./build")    # store the ipa in this folder
 output_name("io.auditplus.mobile")  
