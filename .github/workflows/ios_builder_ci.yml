@@ -17,7 +17,7 @@ jobs:
       uses: timheuer/base64-to-file@v1
       with:
           encodedString: ${{ secrets.FIREBASE_CREDENTIALS }}
-          fileName: 'GoogleService-Info.plist'
+          fileName: 'GoogleService-Info.json'
       env:
           FIREBASE_CREDENTIALS: ${{ steps.fetch_credential_file.outputs.filePath }}
     - name: Distribute app with Firebase
