@@ -12,8 +12,6 @@
 
 scheme("Runner")
 
-sdk("iphoneos9.0")
-
 clean(true)
 
 output_directory("./build")    # store the ipa in this folder
