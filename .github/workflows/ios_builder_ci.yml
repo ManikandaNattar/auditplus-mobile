@@ -26,5 +26,7 @@ jobs:
             fastlane firebase_distribution
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
+          FIREBASE_CREDENTIALS: 'GoogleService-Info.plist'
           
 
