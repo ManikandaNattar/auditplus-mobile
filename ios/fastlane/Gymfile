@@ -16,4 +16,4 @@ workspace("Runner.xcworkspace")
 configuration("Debug")
 output_directory("./build")    # store the ipa in this folder
 output_name("io.auditplus.mobile")  
-export
+export_options("./ExportOptions.plist")
