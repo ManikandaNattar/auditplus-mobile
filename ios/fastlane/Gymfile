@@ -10,7 +10,7 @@
 
 # sdk("iphoneos9.0")
 
-scheme("Auditplus")
+scheme("Runner")
 
 sdk("iphoneos9.0")
 
