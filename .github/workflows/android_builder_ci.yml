@@ -1,4 +1,4 @@
-name: Distribute To Firebase
+name: Distribute APK To Firebase
 
 on:
   workflow_dispatch:
