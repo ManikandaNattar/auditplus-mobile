@@ -12,10 +12,12 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.7'
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
-    - name: Build with Gradle
-      run: ./gradlew build
+    - name: Encrypt Key File
+      id: write_file
+      uses: timheuer/base64-to-file@v1
+      with:
+            fileName: 'keyFile.jks'
+            encodedString: ${{ secrets.KEY_PATH }}
     - name: Distribute app with Firebase
       run: |
             cd android
@@ -23,3 +25,7 @@ jobs:
       env:
           FIREBASE_ANDROID_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
+          KEY_PATH: ${{steps.write_file.outputs}}
+          KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
+          KEY_ALIAS: ${{secrets.KEY_ALIAS}}
+          KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
