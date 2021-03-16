@@ -6,12 +6,12 @@ on:
 jobs:
   release_ios:
     name: Distribute To Firebase
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-ruby@v1
       with:
-        ruby-version: '2.6'
+        ruby-version: '2.7'
     - name: Distribute app with Firebase
       run: |
             cd android
