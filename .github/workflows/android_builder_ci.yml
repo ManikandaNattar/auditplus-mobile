@@ -12,11 +12,14 @@ jobs:
     - uses: actions/setup-ruby@v1
       with:
         ruby-version: '2.7'
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+    - name: Build with Gradle
+      run: ./gradlew build
     - name: Distribute app with Firebase
       run: |
             cd android
-            chmod +x gradlew
             fastlane firebase_distribute
       env:
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          FIREBASE_ANDROID_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
