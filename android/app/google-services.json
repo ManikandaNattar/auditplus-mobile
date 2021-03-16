@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "858564807264",
+    "project_id": "auditplus-3c672",
+    "storage_bucket": "auditplus-3c672.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:858564807264:android:fa393b9921bf01d7d0d105",
+        "android_client_info": {
+          "package_name": "io.auditplus.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "858564807264-bekogv8pkngnp1hdlcss96k7ka0vi2ki.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.auditplus.mobile",
+            "certificate_hash": "4c11f859f2430644a4c8245026cd0bbe61e6e64f"
+          }
+        },
+        {
+          "client_id": "858564807264-fc63hnqbd79llst8oekm93neh4qum428.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnDmiM0nd1_OIqXCkl9iIXO0DcR4g3V0k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "858564807264-fc63hnqbd79llst8oekm93neh4qum428.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
