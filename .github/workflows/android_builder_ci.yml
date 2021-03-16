@@ -15,6 +15,7 @@ jobs:
     - name: Distribute app with Firebase
       run: |
             cd android
+            chmod +x gradlew
             fastlane firebase_distribute
       env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
