@@ -20,7 +20,7 @@ platform :android do
   lane :firebase_distribute do
     gradle(task: "assemble",build_type:"Release")
     firebase_app_distribution(
-    app: "1:858564807264:android:fa393b9921bf01d7d0d105",
+    app: ENV['FIREBASE_ANDROID_APP_ID'],,
     testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
   )
   end
