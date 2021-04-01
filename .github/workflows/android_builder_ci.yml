@@ -4,28 +4,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  release_ios:
+  release_apk:
     name: Distribute To Firebase
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-ruby@v1
       with:
-        ruby-version: '2.7'
-    - name: Encrypt Key File
-      id: write_file
-      uses: timheuer/base64-to-file@v1
-      with:
-            fileName: 'keyFile.jks'
-            encodedString: ${{ secrets.KEY_PATH }}
+        ruby-version: '2.7.2'
     - name: Distribute app with Firebase
       run: |
             cd android
             fastlane firebase_distribute
       env:
           FIREBASE_ANDROID_APP_ID: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-          FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
-          KEY_PATH: ${{steps.write_file}}
-          KEY_STORE_PASSWORD: ${{secrets.KEY_STORE_PASSWORD}}
-          KEY_ALIAS: ${{secrets.KEY_ALIAS}}
-          KEY_PASSWORD: ${{secrets.KEY_PASSWORD}}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

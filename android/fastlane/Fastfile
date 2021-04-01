@@ -16,22 +16,14 @@
 default_platform(:android)
 
 platform :android do
-  desc "Distribute to Firebase"
-  gradle(
-  task: "clean",
-  build_type:"Release", 
-  properties: {
-    "android.injected.signing.store.file" => ENV['KEY_PATH'],
-    "android.injected.signing.store.password" => ENV['KEY_STORE_PASSWORD'],
-    "android.injected.signing.key.alias" => ENV['KEY_ALIAS'],
-    "android.injected.signing.key.password" => ENV['KEY_PASSWORD'],
-  })
+  desc "Distribute APK to Firebase"
+
   lane :firebase_distribute do
     firebase_app_distribution(
     app: ENV['FIREBASE_ANDROID_APP_ID'],
     testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
-    apk_path:"../build/app/outputs/flutter-apk/app-release.apk"
-    release_notes: "One Solution to manage all your business needs. Manage accounts, monitor your inventory, create invoices, receive payments, track your expenses, File GST return and grow your business with one single app."
+    apk_path:"../build/app/outputs/flutter-apk/app-release.apk",
+    release_notes: "One Solution to manage all your business needs. Manage accounts, monitor your inventory, create invoices, receive payments, track your expenses, File GST return and grow your business with one single app.",
   )
   end
 end

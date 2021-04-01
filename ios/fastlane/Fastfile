@@ -16,18 +16,85 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Deploy to Firebase App Distribution"
-  lane :firebase_distribution do
-    update_code_signing_settings(
-  use_automatic_signing: true,
- )
-    gym(scheme: "Runner")
-    firebase_app_distribution(
-      service_credentials_file: ENV['FIREBASE_CREDENTIALS'],
-      app: ENV['FIREBASE_APP_ID'],
-      release_notes_file: "Initial Release",
-      testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
-      ipa:"./build/io.auditplus.mobile.ipa"
-    )
-  end
+  before_all do |lane, options|
+    setup_circle_ci
+    ENV["XCODE_PROJ"] = "./Runner.xcodeproj"
+    ENV["APP_ID"] = "io.auditplus.iosapp"
+    ENV["APP_NAME"] = "Runner"
+    end
+  
+    lane :everything do
+      compile
+      deploy
+    end
+    
+      lane :compile do
+      build
+      end
+    
+      lane :deploy do
+        firebase_distribution
+      end
+
+        private_lane :build do
+        #  create_keychain(
+        #   name: "auditplus_keychain",
+        #   password: ENV['MATCH_PASSWORD'],
+        #   default_keychain: true,
+        #   unlock: true,
+        #   timeout: 3600,
+        #   add_to_search_list: true
+        # )
+          match(
+            app_identifier:ENV['APP_ID'],
+            type: "development",
+            readonly: is_ci,
+            # keychain_name: "auditplus_keychain",
+            # keychain_password: ENV['MATCH_PASSWORD'],
+            generate_apple_certs: false,
+          )
+
+          update_project_team(
+            path: ENV['XCODE_PROJ'],
+            teamid: ENV['TEAM_ID']
+          )
+
+          update_code_signing_settings(
+            use_automatic_signing: false,
+            path: ENV["XCODE_PROJ"],
+            team_id:ENV['TEAM_ID'],
+            profile_name:ENV['sigh_io.auditplus.iosapp_development_profile-name'],
+            bundle_identifier:ENV['APP_ID'],
+            code_sign_identity:"iPhone Developer: Prasad Harikesavan (49TDS362PC)",
+          )
+
+          gym(
+            configuration:"Debug",
+            scheme: ENV['APP_NAME'],
+            export_method:"development",
+            output_name: "Runner.ipa",
+            clean:true,
+            export_team_id: ENV['TEAM_ID'],
+            codesigning_identity:"iPhone Developer: Prasad Harikesavan (49TDS362PC)",
+            output_directory:'dist/ios',
+            export_options: {
+              compileBitcode: false,
+              provisioningProfiles: {
+                ENV["APP_ID"] => ENV['sigh_io.auditplus.iosapp_development_profile-name']
+              },
+              signingStyle: "manual"
+            },
+          )
+          enable_automatic_code_signing(path: ENV["XCODE_PROJ"])
+          end
+
+          private_lane :firebase_distribution do
+          firebase_app_distribution(
+              app: ENV['FIREBASE_APP_ID'],
+              release_notes_file: "One Solution to manage all your business needs. Manage accounts, monitor your inventory, create invoices, receive payments, track your expenses, File GST return and grow your business with one single app.",
+              testers: "amanikandan261194@gmail.com, leefordjudes@gmail.com",
+              ipa_path:'dist/ios/Runner.ipa',
+              firebase_cli_token:ENV["FIREBASE_TOKEN"]
+          )
+          end
 end

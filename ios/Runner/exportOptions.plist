@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+      <key>provisioningProfiles</key>
+      <dict>
+        <key>io.auditplus.iosapp</key>
+        <string>e836351c-f31a-4f95-80f0-110eb2598db3</string>
+      </dict>
+      <key>method</key>
+      <string>development</string>
+      <key>signingCertificate</key>
+      <string>iOS Development</string>
+      <key>signingStyle</key>
+      <string>manual</string>
+      <key>teamID</key>
+      <string>UP698S3XV7</string>
+  </dict>
+</plist>

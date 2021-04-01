@@ -5,19 +5,47 @@ on:
 
 jobs:
   release_ios:
-    name: Distribute To Firebase
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-ruby@v1
       with:
-        ruby-version: '2.6'
-    - name: Distribute app with Firebase
-      run: |
-            cd ios
-            fastlane firebase_distribution
+        ruby-version: '2.7.2'
+    - name: Install Flutter    
+      uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '2.0.3'
+    - name: Run fastlane build
       env:
-          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
-          FIREBASE_TOKEN: ${{secrets.FIREBASE_TOKEN}} 
+        GIT_URL: ${{ secrets.GIT_URL }}
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+        APPLE_ACCOUNT: ${{ secrets.APPLE_ACCOUNT_ID }}
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+      run: |
+        flutter clean
+        flutter pub get
+        flutter precache
+        cd ios
+        pod install
+        fastlane compile --verbose
+    - name: Run fastlane deploy
+      env:
+        FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        APPLE_ACCOUNT: ${{ secrets.APPLE_ACCOUNT_ID }}
+        TEAM_ID: ${{ secrets.TEAM_ID }}
+        MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      run: |
+        cd ios
+        fastlane deploy --verbose
+    
+      
+
+  
+      
+         
+            
+            
+      
           
 

@@ -1,0 +1,4 @@
+#Thu Apr 01 13:47:36 IST 2021
+base.0=D\:\\Flutter\\auditplus-mobile\\build\\app\\intermediates\\transforms\\r8\\release\\0\\classes.dex
+path.0=classes.dex
+renamed.0=classes.dex

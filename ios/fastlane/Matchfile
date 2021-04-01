@@ -1,0 +1,23 @@
+git_url(ENV['GIT_URL'])
+
+# git_url("https://f9d85adab0b48d40acf50012fc6a20a15c58ce2b@github.com/Nattar94/auditplus-cert.git")
+
+# storage_mode("git")
+
+type("development") # The default type, can be: appstore, adhoc, enterprise or development
+
+# app_identifier(["io.auditplus.iosapp"])
+
+clone_branch_directly(true)
+
+# username("amanikandan261194@gmail.com") # Your Apple Developer Portal username
+
+# team_id(ENV['TEAM_ID'])
+
+# team_name(ENV['TEAM_NAME'])
+# generate_apple_certs(false)
+
+# For all available options run `fastlane match --help`
+# Remove the # in the beginning of the line to enable the other options
+
+# The docs are available on https://docs.fastlane.tools/actions/match
