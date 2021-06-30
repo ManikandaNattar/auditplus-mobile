@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,12 +61,22 @@ class TenantAuth with ChangeNotifier {
     }
   }
 
+  List get assignedCashRegisters {
+    if (profile == null) {
+      return [];
+    } else {
+      return profile['cashRegisters'];
+    }
+  }
+
   Map<String, dynamic> get privileges {
     String privilegesData = '';
     if (profile != null) {
       privilegesData = profile['privileges'];
     }
-    return privilegesData.isEmpty ? null : jsonDecode(privilegesData);
+    return privilegesData == null || privilegesData.isEmpty
+        ? null
+        : jsonDecode(privilegesData);
   }
 
   Future<void> getselectedBranch() async {
@@ -134,10 +143,10 @@ class TenantAuth with ChangeNotifier {
     _token = responseData['xat'];
     _organizationName = organization;
     _userId = responseData['id'];
-
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> logout() async {
@@ -147,5 +156,25 @@ class TenantAuth with ChangeNotifier {
     _token = null;
     _userId = null;
     _organizationName = null;
+  }
+
+  Future<Map<String, dynamic>> changePassword(
+      Map<String, dynamic> changePasswordData) async {
+    String url = utils.encodeUrl(
+      organization: organizationName,
+      path: 'auth/change-password/',
+    );
+    final response = await http.post(
+      url,
+      body: json.encode(changePasswordData),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': token,
+      },
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

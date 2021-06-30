@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,17 +14,18 @@ class CostCentreProvider with ChangeNotifier {
   Future<List> costCentreAutocomplete({
     @required String searchText,
   }) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'qsearch',
       organization: _auth.organizationName,
-      path: '$_baseUrl/autocomplete',
-      query: {'search_text': searchText},
+      path: '/autocomplete/cost-centre/',
+      query: {'searchText': searchText},
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(
       url,
       headers: headers,
     );
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getCostCentreList(
@@ -35,15 +35,15 @@ class CostCentreProvider with ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'cost-centre/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -51,11 +51,10 @@ class CostCentreProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getCostCentre(String costCentreId) async {
@@ -68,11 +67,10 @@ class CostCentreProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deleteCostCentre(String costCentreId) async {
@@ -85,10 +83,10 @@ class CostCentreProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createCostCentre(
@@ -106,12 +104,10 @@ class CostCentreProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateCostCentre(
@@ -130,10 +126,9 @@ class CostCentreProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

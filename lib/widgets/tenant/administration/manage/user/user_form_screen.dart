@@ -87,12 +87,10 @@ class _UserFormScreenState extends State<UserFormScreen> {
             ? showUserRegeneratePasswordBottomSheet(
                 screenContext: _screenContext,
                 detail: _userDetail.isEmpty ? responseData : _userDetail,
-              ).then((value) => Future.delayed(Duration(seconds: 1)).then(
-                (value) => Navigator.of(_screenContext)
-                    .pushReplacementNamed('/administration/manage/user')))
-            : Future.delayed(Duration(seconds: 1)).then((value) =>
-                Navigator.of(_screenContext)
-                    .pushReplacementNamed('/administration/manage/user'));
+              ).then((value) => Navigator.of(_screenContext)
+                .pushReplacementNamed('/administration/manage/user'))
+            : Navigator.of(_screenContext)
+                .pushReplacementNamed('/administration/manage/user');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }

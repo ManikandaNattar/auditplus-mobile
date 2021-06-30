@@ -55,8 +55,8 @@ class _DesktopClientListScreenState extends State<DesktopClientListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addDesktopClient(data);

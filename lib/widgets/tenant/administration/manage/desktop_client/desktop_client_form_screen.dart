@@ -59,9 +59,8 @@ class _DesktopClientFormScreenState extends State<DesktopClientFormScreen> {
           utils.showSuccessSnackbar(
               _screenContext, 'Desktop Client updated Successfully');
         }
-        Future.delayed(Duration(seconds: 1)).then((value) =>
-            Navigator.of(_screenContext)
-                .pushReplacementNamed('/administration/manage/desktop-client'));
+        Navigator.of(_screenContext)
+            .pushReplacementNamed('/administration/manage/desktop-client');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }

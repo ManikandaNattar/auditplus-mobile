@@ -8,20 +8,18 @@ import '../utils.dart' as utils;
 class QSearchProvider with ChangeNotifier {
   final _auth;
   QSearchProvider(this._auth);
-  static const _baseUrl = '/qsearch/api/fetch';
 
   Future<Map<String, dynamic>> getInventoryInfo(
     String inventoryId,
     String branchId,
-    String inventoryHead,
   ) async {
     final url = utils.encodeApiUrl(
-      path: '$_baseUrl/inventory-info',
+      apiName: 'qsearch',
+      path: '/fetch/inventory-info',
       organization: _auth.organizationName,
       query: {
         'inventory': inventoryId,
         'branch': branchId,
-        'inventory_head': inventoryHead,
       },
     );
     final response = await http.get(

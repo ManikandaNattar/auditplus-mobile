@@ -59,8 +59,8 @@ class _CostCentreListScreenState extends State<CostCentreListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addCostCentre(data);
@@ -178,7 +178,7 @@ class _CostCentreListScreenState extends State<CostCentreListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'accounting.costCentre.create',
+              'ac.cc.cr',
             ],
           ),
         ),

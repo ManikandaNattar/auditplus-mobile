@@ -21,11 +21,8 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
   FocusNode _openingFocusNode = FocusNode();
   FocusNode _branchFocusNode = FocusNode();
   FocusNode _userFocusNode = FocusNode();
-  FocusNode _enabledForFocusNode = FocusNode();
   TextEditingController _branchTextEditingController = TextEditingController();
   TextEditingController _userTextEditingController = TextEditingController();
-  TextEditingController _enabledForTextEditingController =
-      TextEditingController();
   Map<String, dynamic> _cashRegisterDetail = Map();
   Map arguments = Map();
   Map<String, dynamic> _cashRegisterData = {};
@@ -34,12 +31,8 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
   List _filterBranchList = [];
   List _userList = [];
   List _filterUserList = [];
-  List _enabledForList = [];
-  List _filterEnabledForList = [];
   List _selectedUsersList = [];
-  List _selectedEnabledForList = [];
   List<String> _selectedUserIdList = [];
-  List<String> _selectedEnabledForIdList = [];
   bool _isLoading = true;
 
   @override
@@ -49,10 +42,8 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
     _openingFocusNode.dispose();
     _branchFocusNode.dispose();
     _userFocusNode.dispose();
-    _enabledForFocusNode.dispose();
     _branchTextEditingController.dispose();
     _userTextEditingController.dispose();
-    _enabledForTextEditingController.dispose();
     super.dispose();
   }
 
@@ -73,7 +64,6 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
     _cashRegisterDetail = arguments['detail'];
     _branchTextEditingController.text = _cashRegisterDetail['branch']['name'];
     _selectedUsersList = _cashRegisterDetail['users'];
-    _selectedEnabledForList = _cashRegisterDetail['enabledFor'];
     return _cashRegisterDetail;
   }
 
@@ -87,7 +77,7 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
   }
 
   List _getBranchList(String query) {
-    _filterBranchList.clear();
+    _filterBranchList = [];
     if (_branchList.isEmpty) {
       _branchList = _cashRegisterPage['branches'];
     }
@@ -108,11 +98,11 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
   }
 
   List _getUserList(String query) {
-    _filterUserList.clear();
+    _filterUserList = [];
     if (_userList.isEmpty) {
       _userList = _cashRegisterPage['users'];
     }
-    if (query.toString().isNotEmpty) {
+    if (query.isNotEmpty) {
       for (int i = 0; i <= _userList.length - 1; i++) {
         String name = _userList[i]['username'];
         if (name
@@ -128,27 +118,6 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
     return _filterUserList;
   }
 
-  List _getEnabledForList(String query) {
-    _filterEnabledForList.clear();
-    if (_enabledForList.isEmpty) {
-      _enabledForList = _cashRegisterPage['enabledFor'];
-    }
-    if (query.toString().isNotEmpty) {
-      for (int i = 0; i <= _enabledForList.length - 1; i++) {
-        String name = _enabledForList[i]['name'];
-        if (name
-            .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
-            .toLowerCase()
-            .contains(query.toLowerCase())) {
-          _filterEnabledForList.add(_enabledForList[i]);
-        }
-      }
-    } else {
-      _filterEnabledForList = _enabledForList;
-    }
-    return _filterEnabledForList;
-  }
-
   void _getSelectedUserList() {
     if (_selectedUsersList.isNotEmpty) {
       for (int i = 0; i <= _selectedUsersList.length - 1; i++) {
@@ -157,19 +126,10 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
     }
   }
 
-  void _getSelectedEnabledForList() {
-    if (_selectedEnabledForList.isNotEmpty) {
-      for (int i = 0; i <= _selectedEnabledForList.length - 1; i++) {
-        _selectedEnabledForIdList.add(_selectedEnabledForList[i]['id']);
-      }
-    }
-  }
-
   Future<void> _onSubmit() async {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
       _cashRegisterData.addAll({'users': _selectedUserIdList});
-      _cashRegisterData.addAll({'enabledFor': _selectedEnabledForIdList});
       try {
         if (cashRegisterId.isEmpty) {
           await _cashRegisterProvider.createCashRegister(_cashRegisterData);
@@ -183,9 +143,8 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
           utils.showSuccessSnackbar(
               _screenContext, 'Cash Register updated Successfully');
         }
-        Future.delayed(Duration(seconds: 1)).then((value) =>
-            Navigator.of(_screenContext)
-                .pushReplacementNamed('/administration/manage/cash-register'));
+        Navigator.of(_screenContext)
+            .pushReplacementNamed('/administration/manage/cash-register');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
@@ -261,12 +220,14 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
                       ),
                       Container(
                         width: 120,
-                        padding: EdgeInsets.only(left: 10.0),
+                        padding: EdgeInsets.all(10.0),
                         child: TextFormField(
                           initialValue: _cashRegisterDetail['opening'] == null
                               ? '0.00'
-                              : _cashRegisterDetail['opening'].toString() +
-                                  '.00',
+                              : double.parse(
+                                      _cashRegisterDetail['opening'].toString())
+                                  .abs()
+                                  .toStringAsFixed(2),
                           textAlign: TextAlign.end,
                           focusNode: _openingFocusNode,
                           decoration: InputDecoration(
@@ -286,6 +247,17 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
                               _cashRegisterData
                                   .addAll({'opening': double.parse(val)});
                             }
+                          },
+                          validator: (value) {
+                            if (double.parse(value).isNegative) {
+                              utils.handleErrorResponse(
+                                _screenContext,
+                                'opening should not be lesser than 0',
+                                'tenant',
+                              );
+                              return '';
+                            }
+                            return null;
                           },
                         ),
                       )
@@ -355,8 +327,11 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
                           keyboardType: TextInputType.text,
                           style: TextStyle(color: Colors.grey),
                           onSaved: (val) {
-                            _cashRegisterData
-                                .addAll({'branch': val == null ? null : val});
+                            _cashRegisterData.addAll(
+                              {
+                                'branch': _cashRegisterDetail['branch']['id'],
+                              },
+                            );
                           },
                         ),
                 ],
@@ -459,94 +434,6 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
     );
   }
 
-  Widget _cashRegisterFormEnabledForInfoContainer() {
-    return Container(
-      width: double.infinity,
-      child: Card(
-        elevation: 10.0,
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ListTileTheme(
-            dense: true,
-            child: ExpansionTile(
-              maintainState: true,
-              title: Text(
-                'ENABLED FOR INFO',
-                style: Theme.of(context).textTheme.headline1,
-              ),
-              childrenPadding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 4.0,
-              ),
-              children: [
-                AutocompleteFormField(
-                  focusNode: _enabledForFocusNode,
-                  controller: _enabledForTextEditingController,
-                  labelText: 'Enabled For',
-                  suggestionFormatter: (suggestion) => suggestion['name'],
-                  textFormatter: (selection) => selection['name'],
-                  validator: null,
-                  onSaved: (_) {
-                    _getSelectedEnabledForList();
-                  },
-                  autocompleteCallback: (pattern) async {
-                    return _getEnabledForList(pattern);
-                  },
-                  onSelected: (value) {
-                    _enabledForTextEditingController.clear();
-                    setState(() {
-                      _selectedEnabledForList.removeWhere(
-                          (element) => element['id'] == value['id']);
-                      _selectedEnabledForList.add(value);
-                    });
-                  },
-                ),
-                SizedBox(
-                  height: 20.0,
-                ),
-                Visibility(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width - 30,
-                    child: Wrap(
-                      spacing: 5.0,
-                      children: [
-                        ..._selectedEnabledForList
-                            .map(
-                              (e) => Chip(
-                                label: Text(
-                                  e['name'],
-                                ),
-                                labelStyle: Theme.of(context).textTheme.button,
-                                backgroundColor: Theme.of(context).primaryColor,
-                                deleteIcon: Icon(Icons.clear),
-                                deleteIconColor:
-                                    Theme.of(context).textTheme.button.color,
-                                onDeleted: () {
-                                  setState(
-                                    () {
-                                      _selectedEnabledForList.removeWhere(
-                                          (element) =>
-                                              element['id'] == e['id']);
-                                      _selectedEnabledForIdList.remove(e['id']);
-                                    },
-                                  );
-                                },
-                              ),
-                            )
-                            .toList()
-                      ],
-                    ),
-                  ),
-                  visible: _selectedEnabledForList.isNotEmpty,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -588,7 +475,6 @@ class _CashRegisterFormScreenState extends State<CashRegisterFormScreen> {
                           children: [
                             _cashRegisterFormGeneralInfoContainer(),
                             _cashRegisterFormUserInfoContainer(),
-                            _cashRegisterFormEnabledForInfoContainer(),
                           ],
                         ),
                       ),

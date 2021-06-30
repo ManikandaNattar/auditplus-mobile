@@ -404,8 +404,7 @@ public final class R {
   }
   public static final class integer {
     public static final int cancel_button_image_alpha=0x7f060000;
-    public static final int google_play_services_version=0x7f060001;
-    public static final int status_bar_notification_info_maxnum=0x7f060002;
+    public static final int status_bar_notification_info_maxnum=0x7f060001;
   }
   public static final class layout {
     public static final int custom_dialog=0x7f070000;
@@ -429,15 +428,7 @@ public final class R {
     public static final int ic_launcher=0x7f080000;
   }
   public static final class string {
-    public static final int common_google_play_services_unknown_issue=0x7f090000;
-    public static final int default_web_client_id=0x7f090001;
-    public static final int gcm_defaultSenderId=0x7f090002;
-    public static final int google_api_key=0x7f090003;
-    public static final int google_app_id=0x7f090004;
-    public static final int google_crash_reporting_api_key=0x7f090005;
-    public static final int google_storage_bucket=0x7f090006;
-    public static final int project_id=0x7f090007;
-    public static final int status_bar_notification_info_overflow=0x7f090008;
+    public static final int status_bar_notification_info_overflow=0x7f090000;
   }
   public static final class style {
     public static final int LaunchTheme=0x7f0a0000;

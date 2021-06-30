@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "D:\\Flutter\\auditplus-mobile\\build\\open_file\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values\\values.xml",
+            "outputFile": "D:\\WF\\Android\\auditplusmobile\\build\\open_file\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values\\values.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\3e26ef26d15f163a2f1a31a2130a0254\\core-1.1.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\a528b13ac93e64cafa3d0480e2c93207\\core-1.1.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,83,84,88,89,90,91,98,141,173,210",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\5075bc77c451a44b9e5ad7ac41aa6483\\media-1.0.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\6d35bbbe327ef689c582d1173367f0ed\\media-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -40,7 +40,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\20c3233714e73a617d23ea69eac6130c\\coordinatorlayout-1.0.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\ae13efc3dbae5c9ee58d4933337fcd21\\coordinatorlayout-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,102,3,13",
                         "startColumns": "4,4,4,4",
@@ -61,10 +61,10 @@
             ]
         },
         {
-            "outputFile": "D:\\Flutter\\auditplus-mobile\\build\\open_file\\intermediates\\res\\merged\\release\\values\\values.xml",
+            "outputFile": "D:\\WF\\Android\\auditplusmobile\\build\\open_file\\intermediates\\res\\merged\\release\\values\\values.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\3e26ef26d15f163a2f1a31a2130a0254\\core-1.1.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\a528b13ac93e64cafa3d0480e2c93207\\core-1.1.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,83,84,88,89,90,91,98,141,173,210",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -83,7 +83,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\5075bc77c451a44b9e5ad7ac41aa6483\\media-1.0.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\6d35bbbe327ef689c582d1173367f0ed\\media-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -100,7 +100,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\20c3233714e73a617d23ea69eac6130c\\coordinatorlayout-1.0.0\\res\\values\\values.xml",
+                    "source": "C:\\Users\\auditplus-dev3\\.gradle\\caches\\transforms-2\\files-2.1\\ae13efc3dbae5c9ee58d4933337fcd21\\coordinatorlayout-1.0.0\\res\\values\\values.xml",
                     "from": {
                         "startLines": "2,102,3,13",
                         "startColumns": "4,4,4,4",

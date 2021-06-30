@@ -39,7 +39,7 @@ class _UnitDetailScreenState extends State<UnitDetailScreen> {
         'GENERAL INFO': {
           'Name': _unitData['name'],
           'AliasName': _unitData['aliasName'],
-          'UQC': _unitData['uqc'] == null ? '' : _unitData['uqc']['code']
+          'UQC': _unitData['uqc'] == null ? '' : _unitData['uqc']['quantity']
         },
       },
     );
@@ -49,9 +49,8 @@ class _UnitDetailScreenState extends State<UnitDetailScreen> {
     try {
       await _unitProvider.deleteUnit(unitId);
       utils.showSuccessSnackbar(_screenContext, 'Unit Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/unit'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/unit');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -80,7 +79,7 @@ class _UnitDetailScreenState extends State<UnitDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.unit.update',
+                'inv.unt.up',
               ],
             ),
           ),
@@ -99,7 +98,7 @@ class _UnitDetailScreenState extends State<UnitDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.unit.delete',
+                'inv.unt.dl',
               ],
             ),
           ),

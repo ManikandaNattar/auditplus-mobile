@@ -16,8 +16,8 @@ Future<dynamic> showInventoryHeadForm({
     ),
     isScrollControlled: true,
     builder: (_) {
-      return Container(
-        height: MediaQuery.of(screenContext).size.height * 0.89,
+      return FractionallySizedBox(
+        heightFactor: 0.8,
         child: InventoryHeadFormScreen(
           screenContext,
         ),

@@ -42,10 +42,24 @@ class _CashRegisterDetailScreenState extends State<CashRegisterDetailScreen> {
           'Name': _cashRegisterData['name'],
           'AliasName': _cashRegisterData['aliasName'],
           'Branch': _cashRegisterData['branch']['name'],
-          'Opening': _cashRegisterData['opening'].toString() + '.00',
+          'Opening':
+              _cashRegisterData['opening'].toString().replaceAll('null', '0') +
+                  '.00',
         },
       },
     );
+  }
+
+  Future<void> _deleteCashRegister() async {
+    try {
+      await _cashRegisterProvider.deleteCashRegister(cashRegisterId);
+      utils.showSuccessSnackbar(
+          _screenContext, 'Cash Register Deleted Successfully');
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/administration/manage/cash-register');
+    } catch (error) {
+      utils.handleErrorResponse(_screenContext, error.message, 'tenant');
+    }
   }
 
   @override
@@ -66,6 +80,17 @@ class _CashRegisterDetailScreenState extends State<CashRegisterDetailScreen> {
                 'detail': _cashRegisterData,
               },
             ),
+          ),
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              utils.showAlertDialog(
+                _screenContext,
+                _deleteCashRegister,
+                'Delete Cash Register?',
+                'Are you sure want to delete',
+              );
+            },
           ),
         ],
       ),

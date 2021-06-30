@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -18,14 +17,15 @@ class InventoryReportsProvider with ChangeNotifier {
     List branch,
     int pageNo,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'report',
       organization: _auth.organizationName,
-      path: '$_baseUrl/inventory-book',
+      path: '/inventory-book',
       query: {
-        'inventory_id': inventoryId,
-        'branch_id': json.encode(branch),
-        'from_date': fromDate,
-        'to_date': toDate,
+        'inventory': inventoryId,
+        'branch': json.encode(branch),
+        'fromDate': fromDate,
+        'toDate': toDate,
         'page': pageNo.toString(),
       },
     );
@@ -34,11 +34,10 @@ class InventoryReportsProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Uint8List> getInventoryBookPrintData(
@@ -67,14 +66,56 @@ class InventoryReportsProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    if (response.statusCode != 200) {
-      final responseData = json.decode(response.body);
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    } else {
-      final responseData = response.bodyBytes;
-      return responseData;
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<Map<String, dynamic>> getStockAnalysisReport(
+    int pageNo,
+    String groupBy,
+    Map<String, List> filterArguments,
+  ) async {
+    final url = utils.encodeApiUrl(
+      apiName: 'report',
+      organization: _auth.organizationName,
+      path: '/stock-analysis',
+      query: {
+        'group': groupBy,
+        'filter': filterArguments == null ? null : json.encode(filterArguments),
+        'page': pageNo.toString(),
+      },
+    );
+    final headers = {'X-Auth-Token': _auth.token as String};
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<void> generateStockAnalysisReport(
+    Map<String, dynamic> generateData,
+  ) async {
+    String url = utils.encodeUrl(
+      organization: _auth.organizationName,
+      path: '$_baseUrl/stock-analysis/generate',
+    );
+    final response = await http.post(
+      url,
+      body: json.encode(generateData),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': _auth.token as String,
+      },
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

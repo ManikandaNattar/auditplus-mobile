@@ -20,8 +20,8 @@ Future<dynamic> showModalUserBranchSelection({
     ),
     isScrollControlled: true,
     builder: (_) {
-      return Container(
-        height: MediaQuery.of(context).size.height * 0.89,
+      return FractionallySizedBox(
+        heightFactor: 0.8,
         child: UserBranchSelection(
           selectedBranch,
           inventoryHead,

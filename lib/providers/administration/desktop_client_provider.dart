@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -11,13 +10,14 @@ class DesktopClientProvider with ChangeNotifier {
   DesktopClientProvider(this._auth);
 
   Future<List> desktopClientAutoComplete({@required String searchText}) async {
-    final url = utils.encodeUrl(
-        path: '$_baseUrl/autocomplete',
+    final url = utils.encodeApiUrl(
+        apiName: 'qsearch',
+        path: '/autocomplete/desktop-client/',
         organization: _auth.organizationName,
-        query: {'search_text': searchText});
+        query: {'searchText': searchText});
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getDesktopClientList(
@@ -27,15 +27,15 @@ class DesktopClientProvider with ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'desktop-client/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -43,11 +43,10 @@ class DesktopClientProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getDesktopClient(String desktopClientId) async {
@@ -60,11 +59,10 @@ class DesktopClientProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deleteDesktopClient(String desktopClientId) async {
@@ -77,10 +75,10 @@ class DesktopClientProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createDesktopClient(
@@ -98,12 +96,10 @@ class DesktopClientProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateDesktopClient(
@@ -122,11 +118,10 @@ class DesktopClientProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> assignBranches(
@@ -145,13 +140,10 @@ class DesktopClientProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<List> getClientAssignedBranches(String desktopClientId) async {
@@ -164,7 +156,10 @@ class DesktopClientProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    return json.decode(response.body);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map> generateRegistrationCode(String desktopClientId) async {
@@ -177,6 +172,9 @@ class DesktopClientProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    return json.decode(response.body);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

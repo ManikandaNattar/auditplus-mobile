@@ -57,8 +57,8 @@ class _WarehouseListScreenState extends State<WarehouseListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addWarehouse(data);

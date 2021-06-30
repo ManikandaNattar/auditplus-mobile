@@ -51,9 +51,8 @@ class _SectionDetailScreenState extends State<SectionDetailScreen> {
     try {
       await _sectionProvider.deleteSection(sectionId);
       utils.showSuccessSnackbar(_screenContext, 'Section Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/section'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/section');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -82,7 +81,7 @@ class _SectionDetailScreenState extends State<SectionDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.section.update',
+                'inv.sec.up',
               ],
             ),
           ),
@@ -101,7 +100,7 @@ class _SectionDetailScreenState extends State<SectionDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.section.delete',
+                'inv.sec.dl',
               ],
             ),
           ),

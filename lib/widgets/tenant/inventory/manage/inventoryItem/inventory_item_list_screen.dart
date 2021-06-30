@@ -57,24 +57,30 @@ class _InventoryItemListScreenState extends State<InventoryItemListScreen> {
 
   Future<List<Map<String, dynamic>>> _getInventoryItemList() async {
     try {
-      Map<String, dynamic> searchQuery = utils.buildSearchQuery({
-        {'name': _formData['nameFilterKey']}: _formData['name'],
-        {'barcode': _formData['barcodeFilterKey']}: _formData['barcode'],
-        {'hsnCode': _formData['hsnCodeFilterKey']}: _formData['hsnCode'],
-        {'section': 'eq'}: _formData['section'],
-        {'manufacturer': 'eq'}: _formData['manufacturer'],
-        {'tax': 'eq'}: _formData['tax'],
-        {'head': 'eq'}: _selectedBranch['inventoryHead'],
-      });
+      Map<String, dynamic> searchQuery = utils.buildSearchQuery(
+        {
+          {'name': _formData['nameFilterKey']}: _formData['name'],
+          {'barcode': _formData['barcodeFilterKey']}: _formData['barcode'],
+          {'hsnCode': _formData['hsnCodeFilterKey']}: _formData['hsnCode'],
+          {'section': 'eq'}: _formData['section'],
+          {'manufacturer': 'eq'}: _formData['manufacturer'],
+          {'tax': 'eq'}: _formData['tax'] == ''
+              ? ''
+              : {
+                  'name': _formData['tax']['name'],
+                },
+        },
+      );
       Map response = await _inventoryItemProvider.getInventoryList(
         searchQuery,
         pageNo,
-        25,
+        100,
         '',
         '',
+        [_selectedBranch['inventoryHead']],
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addInventoryItem(data);
@@ -95,9 +101,8 @@ class _InventoryItemListScreenState extends State<InventoryItemListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
-            'subtitle': elm['unit']['name'],
+            'subtitle': '',
           };
         },
       ).toList(),
@@ -182,7 +187,7 @@ class _InventoryItemListScreenState extends State<InventoryItemListScreen> {
                 _selectedBranch = val;
                 _isLoading = true;
               });
-              _inventoryItemList.clear();
+              _inventoryItemList = [];
               _getInventoryItemList();
             }
           },
@@ -206,7 +211,7 @@ class _InventoryItemListScreenState extends State<InventoryItemListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'inventory.inventory.create',
+              'inv.inv.cr',
             ],
           ),
         ),

@@ -47,8 +47,9 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
         'GENERAL INFO': {
           'Name': _accountData['name'],
           'AliasName': _accountData['aliasName'],
-          'Type': _accountData['type']['name'],
-          'Parent Account': _accountData['parentAccount'] == null
+          'Account Type': _accountData['accountType']['name'],
+          'Parent Account': _accountData['parentAccount'] == null &&
+                  _accountData['parentAccount'] == {}
               ? ''
               : _accountData['parentAccount']['name'],
           'Description': _accountData['description'] == null
@@ -63,19 +64,18 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
     try {
       await _accountProvider.deleteAccount(accountId);
       utils.showSuccessSnackbar(_screenContext, 'Account Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/accounts/manage/account'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/accounts/manage/account');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
   }
 
   void _checkVisibility() {
-    if (utils.checkMenuWiseAccess(context, ['accounting.account.opening'])) {
+    if (utils.checkMenuWiseAccess(context, ['ac.ac.op'])) {
       _menuList.add('Account Opening');
     }
-    if (utils.checkMenuWiseAccess(context, ['accounting.account.delete'])) {
+    if (utils.checkMenuWiseAccess(context, ['ac.ac.dl'])) {
       _menuList.add('Delete Account');
     }
   }
@@ -83,10 +83,14 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
   void _menuAction(String menu) {
     if (menu == 'Account Opening') {
       Navigator.of(context).pushNamed(
-        '/accounts/manage/account/opening',
+        _accountData['accountType']['defaultName'] == 'TRADE_PAYABLE' ||
+                _accountData['accountType']['defaultName'] == 'TRADE_RECEIVABLE'
+            ? '/accounts/manage/account-type/opening'
+            : '/accounts/manage/account/opening',
         arguments: {
           'id': accountId,
           'displayName': accountName,
+          'detail': _accountData,
         },
       );
     } else if (menu == 'Delete Account') {
@@ -122,7 +126,7 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.account.update',
+                'ac.ac.up',
               ],
             ),
           ),
@@ -145,8 +149,8 @@ class _AccountDetailScreenState extends State<AccountDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.account.opening',
-                'accounting.account.delete',
+                'ac.ac.op',
+                'ac.ac.dl',
               ],
             ),
           ),

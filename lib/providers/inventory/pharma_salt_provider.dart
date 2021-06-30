@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import './../../utils.dart' as utils;
@@ -11,13 +10,14 @@ class PharmaSaltProvider with ChangeNotifier {
   PharmaSaltProvider(this._auth);
 
   Future<List> pharmaSaltAutoComplete({@required String searchText}) async {
-    final url = utils.encodeUrl(
-        path: '$_baseUrl/autocomplete',
+    final url = utils.encodeApiUrl(
+        apiName: 'qsearch',
+        path: '/autocomplete/pharma-salt/',
         organization: _auth.organizationName,
-        query: {'search_text': searchText});
+        query: {'searchText': searchText});
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getPharmaSaltList(
@@ -27,15 +27,15 @@ class PharmaSaltProvider with ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'pharma-salt/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -43,11 +43,10 @@ class PharmaSaltProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getPharmaSalt(String saltId) async {
@@ -60,11 +59,10 @@ class PharmaSaltProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deletePharmaSalt(String saltId) async {
@@ -77,10 +75,10 @@ class PharmaSaltProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createPharmaSalt(
@@ -97,12 +95,10 @@ class PharmaSaltProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updatePharmaSalt(
@@ -119,10 +115,9 @@ class PharmaSaltProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

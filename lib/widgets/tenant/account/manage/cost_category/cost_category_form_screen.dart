@@ -71,15 +71,12 @@ class _CostCategoryFormScreenState extends State<CostCategoryFormScreen> {
               _screenContext, 'Cost category updated Successfully');
         }
         if (arguments == null || arguments['routeForm'] == null) {
-          Future.delayed(Duration(seconds: 1)).then((value) =>
-              Navigator.of(_screenContext)
-                  .pushReplacementNamed('/accounts/manage/cost-category'));
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/accounts/manage/cost-category');
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {

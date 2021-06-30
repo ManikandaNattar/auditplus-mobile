@@ -16,7 +16,7 @@ class OrganizationScreen extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: OrganizationBody(context),
+                child: OrganizationBody(),
               ),
             ),
           ],

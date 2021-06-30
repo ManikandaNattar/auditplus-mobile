@@ -55,11 +55,13 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
   String inventoryItemId = '';
   String inventoryItemName = '';
   int decimalvalue = 0;
-  bool _enableMultipleBatches = false;
+  bool _enableMultipleBatches = true;
   bool _allowNegativeStock = false;
   bool _scheduleH = false;
   bool _scheduleH1 = false;
   bool _narcotics = false;
+  List _taxList = [];
+  List _filterTaxList = [];
 
   @override
   void dispose() {
@@ -98,13 +100,21 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
   Map<String, dynamic> _getInventory() {
     if (_inventoryItemDetail.isEmpty) {
       _inventoryItemDetail = arguments['detail'];
-      _saltList = _inventoryItemDetail['salts'];
+      _saltList = _inventoryItemDetail['salts'] == null
+          ? []
+          : _inventoryItemDetail['salts'];
       decimalvalue = _inventoryItemDetail['precision'];
       _enableMultipleBatches = _inventoryItemDetail['bwd'];
       _allowNegativeStock = _inventoryItemDetail['allowNegativeStock'];
-      _scheduleH = _inventoryItemDetail['scheduleH'];
-      _scheduleH1 = _inventoryItemDetail['scheduleH1'];
-      _narcotics = _inventoryItemDetail['narcotics'];
+      _scheduleH = _inventoryItemDetail['scheduleH'] == null
+          ? false
+          : _inventoryItemDetail['scheduleH'];
+      _scheduleH1 = _inventoryItemDetail['scheduleH1'] == null
+          ? false
+          : _inventoryItemDetail['scheduleH1'];
+      _narcotics = _inventoryItemDetail['narcotics'] == null
+          ? false
+          : _inventoryItemDetail['narcotics'];
       _sectionTextEditingController.text =
           _inventoryItemDetail['section'] == null
               ? ''
@@ -118,17 +128,39 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
               : _inventoryItemDetail['manufacturer']['name'];
       _taxTextEditingController.text = _inventoryItemDetail['tax'] == null
           ? ''
-          : _inventoryItemDetail['tax']['name'];
+          : _inventoryItemDetail['tax']['displayName'];
     }
     return _inventoryItemDetail;
   }
 
   void _getSelectedSaltList() {
     if (_saltList.isNotEmpty) {
+      _saltIdArrayList.clear();
       for (int i = 0; i <= _saltList.length - 1; i++) {
         _saltIdArrayList.add(_saltList[i]['id']);
       }
     }
+  }
+
+  Future<List> _getTaxList(String query) async {
+    _filterTaxList.clear();
+    if (_taxList.isEmpty) {
+      _taxList = await _taxProvider.taxAutoComplete();
+    }
+    if (query.toString().isNotEmpty) {
+      for (int i = 0; i <= _taxList.length - 1; i++) {
+        String name = _taxList[i]['displayName'];
+        if (name
+            .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
+            .toLowerCase()
+            .startsWith(query.toLowerCase())) {
+          _filterTaxList.add(_taxList[i]);
+        }
+      }
+    } else {
+      _filterTaxList = _taxList;
+    }
+    return _filterTaxList;
   }
 
   Future<void> _onSubmit() async {
@@ -158,10 +190,8 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
             'Inventory updated Successfully',
           );
         }
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) => Navigator.of(_screenContext).pushReplacementNamed(
-            '/inventory/manage/inventory-item',
-          ),
+        Navigator.of(_screenContext).pushReplacementNamed(
+          '/inventory/manage/inventory-item',
         );
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
@@ -266,90 +296,73 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: inventoryItemId.isEmpty
-                            ? AutocompleteFormField(
-                                autoFocus: false,
-                                focusNode: _unitFocusNode,
-                                controller: _unitTextEditingController,
-                                autocompleteCallback: (pattern) {
-                                  return _unitProvider.unitAutoComplete(
-                                    searchText: pattern,
-                                  );
-                                },
-                                validator: (value) {
-                                  if (unitId.isEmpty && value == null) {
-                                    return 'Unit should not be empty';
-                                  }
-                                  return null;
-                                },
-                                labelText: 'Unit',
-                                labelStyle: TextStyle(
-                                  color: Theme.of(context).errorColor,
-                                ),
-                                suggestionFormatter: (suggestion) =>
-                                    suggestion['name'],
-                                textFormatter: (selection) => selection['name'],
-                                onSaved: (val) {
-                                  _inventoryItemData.addAll(
-                                    {
-                                      'unit':
-                                          unitId.isEmpty ? val['id'] : unitId
-                                    },
-                                  );
-                                },
-                                suffixIconWidget: Visibility(
-                                  child: IconButton(
-                                    icon: Icon(
-                                      Icons.add_circle_outline,
-                                      color: Theme.of(context).primaryColor,
-                                    ),
-                                    onPressed: () {
-                                      Navigator.of(context).pushNamed(
-                                        '/inventory/manage/unit/form',
-                                        arguments: {
-                                          'routeForm': 'InventoryToUnit',
-                                          'id': inventoryItemId,
-                                          'displayName': inventoryItemName,
-                                          'detail': _inventoryItemData,
-                                          'formInputName':
-                                              _unitTextEditingController.text,
-                                        },
-                                      ).then((value) {
-                                        _unitFocusNode.unfocus();
-                                        FocusScope.of(context)
-                                            .requestFocus(_decimalFocusNode);
-                                        if (value != null) {
-                                          setState(() {
-                                            Map data = value;
-                                            unitId = data['routeFormArguments']
-                                                ['id'];
-                                            _unitTextEditingController.text =
-                                                data['routeFormArguments']
-                                                    ['name'];
-                                          });
-                                        }
-                                      });
-                                    },
-                                  ),
-                                  visible: utils.checkMenuWiseAccess(
-                                    context,
-                                    ['inventory.unit.create'],
-                                  ),
-                                ),
-                              )
-                            : TextFormField(
-                                readOnly: true,
-                                initialValue: _unitTextEditingController.text,
-                                decoration: InputDecoration(
-                                  labelText: 'Unit',
-                                  border: OutlineInputBorder(),
-                                ),
-                                keyboardType: TextInputType.text,
-                                style: TextStyle(color: Colors.grey),
-                                onSaved: (val) {
-                                  _inventoryItemData.addAll({'unit': val});
-                                },
+                        child: AutocompleteFormField(
+                          initialValue:
+                              utils.cast(_inventoryItemDetail['unit']),
+                          autoFocus: false,
+                          focusNode: _unitFocusNode,
+                          controller: _unitTextEditingController,
+                          autocompleteCallback: (pattern) {
+                            return _unitProvider.unitAutoComplete(
+                              searchText: pattern,
+                            );
+                          },
+                          validator: (value) {
+                            if (unitId.isEmpty && value == null) {
+                              return 'Unit should not be empty';
+                            }
+                            return null;
+                          },
+                          labelText: 'Unit',
+                          labelStyle: TextStyle(
+                            color: Theme.of(context).errorColor,
+                          ),
+                          suggestionFormatter: (suggestion) =>
+                              suggestion['name'],
+                          textFormatter: (selection) => selection['name'],
+                          onSaved: (val) {
+                            _inventoryItemData.addAll(
+                              {'unit': unitId.isEmpty ? val['id'] : unitId},
+                            );
+                          },
+                          suffixIconWidget: Visibility(
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.add_circle_outline,
+                                color: Theme.of(context).primaryColor,
                               ),
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                  '/inventory/manage/unit/form',
+                                  arguments: {
+                                    'routeForm': 'InventoryToUnit',
+                                    'id': inventoryItemId,
+                                    'displayName': inventoryItemName,
+                                    'detail': _inventoryItemData,
+                                    'formInputName':
+                                        _unitTextEditingController.text,
+                                  },
+                                ).then((value) {
+                                  _unitFocusNode.unfocus();
+                                  FocusScope.of(context)
+                                      .requestFocus(_decimalFocusNode);
+                                  if (value != null) {
+                                    setState(() {
+                                      Map data = value;
+                                      unitId = data['routeFormArguments']['id'];
+                                      _unitTextEditingController.text =
+                                          data['routeFormArguments']['name'];
+                                    });
+                                  }
+                                });
+                              },
+                            ),
+                            visible: utils.checkMenuWiseAccess(
+                              context,
+                              ['inv.unt.cr'],
+                            ),
+                          ),
+                        ),
                       ),
                       Container(
                         padding: EdgeInsets.only(left: 8.0),
@@ -394,9 +407,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                     focusNode: _taxFocusNode,
                     controller: _taxTextEditingController,
                     autocompleteCallback: (pattern) {
-                      return _taxProvider.taxAutoComplete(
-                        searchText: pattern,
-                      );
+                      return _getTaxList(pattern);
                     },
                     validator: (val) {
                       if (val == null) {
@@ -408,11 +419,12 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                     labelStyle: TextStyle(
                       color: Theme.of(context).errorColor,
                     ),
-                    suggestionFormatter: (suggestion) => suggestion['name'],
-                    textFormatter: (selection) => selection['name'],
+                    suggestionFormatter: (suggestion) =>
+                        suggestion['displayName'],
+                    textFormatter: (selection) => selection['displayName'],
                     onSaved: (val) {
                       _inventoryItemData.addAll(
-                        {'tax': val == null ? null : val['id']},
+                        {'tax': val == null ? null : val['name']},
                       );
                     },
                     onSelected: (_) {
@@ -511,7 +523,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                     ),
                     visible: utils.checkMenuWiseAccess(
                       context,
-                      ['inventory.section.create'],
+                      ['inv.sec.cr'],
                     ),
                   ),
                 ),
@@ -579,7 +591,7 @@ class _InventoryItemFormScreenState extends State<InventoryItemFormScreen> {
                     ),
                     visible: utils.checkMenuWiseAccess(
                       context,
-                      ['inventory.manufacturer.create'],
+                      ['inv.man.cr'],
                     ),
                   ),
                 ),

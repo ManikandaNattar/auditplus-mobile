@@ -48,9 +48,8 @@ class _PharmaSaltDetailScreenState extends State<PharmaSaltDetailScreen> {
     try {
       await _pharmaSaltProvider.deletePharmaSalt(saltId);
       utils.showSuccessSnackbar(_screenContext, 'Salt Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/pharma-salt'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/pharma-salt');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -79,7 +78,7 @@ class _PharmaSaltDetailScreenState extends State<PharmaSaltDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.pharmaSalt.update',
+                'inv.pslt.up',
               ],
             ),
           ),
@@ -98,7 +97,7 @@ class _PharmaSaltDetailScreenState extends State<PharmaSaltDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.pharmaSalt.delete',
+                'inv.pslt.dl',
               ],
             ),
           ),

@@ -61,7 +61,7 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
     _uqcList = await _unitProvider.getUnitUQC();
     if (query.toString().isNotEmpty) {
       for (int i = 0; i <= _uqcList.length - 1; i++) {
-        String name = _uqcList[i]['name'];
+        String name = _uqcList[i]['quantity'];
         if (name
             .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
             .toLowerCase()
@@ -78,7 +78,7 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
   Map<String, dynamic> _getUnit() {
     _unitDetail = arguments['detail'];
     _uqcTextEditingController.text =
-        _unitDetail['uqc'] == null ? '' : _unitDetail['uqc']['code'];
+        _unitDetail['uqc'] == null ? '' : _unitDetail['uqc']['quantity'];
     return _unitDetail;
   }
 
@@ -97,16 +97,12 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
               _screenContext, 'Unit updated Successfully');
         }
         if (arguments == null || arguments['routeForm'] == null) {
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext)
-                .pushReplacementNamed('/inventory/manage/unit'),
-          );
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/inventory/manage/unit');
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {
@@ -271,8 +267,11 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
                     },
                     validator: null,
                     labelText: 'UQC',
-                    suggestionFormatter: (suggestion) => suggestion['code'],
-                    textFormatter: (selection) => selection['code'],
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).errorColor,
+                    ),
+                    suggestionFormatter: (suggestion) => suggestion['quantity'],
+                    textFormatter: (selection) => selection['quantity'],
                     onSaved: (val) {
                       _unitData.addAll(
                         {
@@ -280,7 +279,7 @@ class _UnitFormScreenState extends State<UnitFormScreen> {
                               ? null
                               : _uqcTextEditingController.text.isEmpty
                                   ? null
-                                  : val['code']
+                                  : val['name']
                         },
                       );
                     },

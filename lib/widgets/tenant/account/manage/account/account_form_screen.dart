@@ -1,4 +1,6 @@
 import 'package:auditplusmobile/providers/accounting/account_provider.dart';
+import 'package:auditplusmobile/providers/inventory/customer_provider.dart';
+import 'package:auditplusmobile/providers/inventory/vendor_provider.dart';
 import 'package:auditplusmobile/widgets/shared/autocomplete_form_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +16,8 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   BuildContext _screenContext;
   AccountProvider _accountProvider;
+  VendorProvider _vendorProvider;
+  CustomerProvider _customerProvider;
   String accountId = '';
   String accountName = '';
   FocusNode _nameFocusNode = FocusNode();
@@ -22,15 +26,21 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
   FocusNode _parentAccountFocusNode = FocusNode();
   FocusNode _descriptionFocusNode = FocusNode();
   FocusNode _typeFocusNode = FocusNode();
+  FocusNode _vendorFocusNode = FocusNode();
+  FocusNode _customerFocusNode = FocusNode();
   TextEditingController _parentAccountTextEditingController =
       TextEditingController();
   TextEditingController _typeTextEditingController = TextEditingController();
+  TextEditingController _vendorTextEditingController = TextEditingController();
+  TextEditingController _customerTextEditingController =
+      TextEditingController();
   Map<String, dynamic> _accountDetail = {};
   Map arguments = {};
   Map<String, dynamic> _accountData = {};
   List _accountTypeList = [];
   List _filterAccountTypeList = [];
   List<String> _selectedAccountTypes = [];
+  String name = '';
 
   @override
   void dispose() {
@@ -42,17 +52,27 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     _parentAccountTextEditingController.dispose();
     _typeTextEditingController.dispose();
     _typeFocusNode.dispose();
+    _customerFocusNode.dispose();
+    _vendorFocusNode.dispose();
+    _customerTextEditingController.dispose();
+    _vendorTextEditingController.dispose();
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     _accountProvider = Provider.of<AccountProvider>(context);
+    _vendorProvider = Provider.of<VendorProvider>(context);
+    _customerProvider = Provider.of<CustomerProvider>(context);
     arguments = ModalRoute.of(context).settings.arguments;
     if (arguments != null) {
-      accountId = arguments['id'];
-      accountName = arguments['displayName'];
-      _getAccount();
+      if (arguments['routeForm'] == null) {
+        accountId = arguments['id'];
+        accountName = arguments['displayName'];
+        _getAccount();
+      } else {
+        name = arguments['formInputName'];
+      }
     }
     super.didChangeDependencies();
   }
@@ -63,9 +83,10 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
         _accountDetail['parentAccount'] == null
             ? ''
             : _accountDetail['parentAccount']['name'];
-    _typeTextEditingController.text =
-        _accountDetail['type'] == null ? '' : _accountDetail['type']['name'];
-    _selectedAccountTypes.add(_accountDetail['type']['defaultName']);
+    _typeTextEditingController.text = _accountDetail['accountType'] == null
+        ? ''
+        : _accountDetail['accountType']['name'];
+    _selectedAccountTypes.add(_accountDetail['accountType']['defaultName']);
     return _accountDetail;
   }
 
@@ -80,7 +101,7 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
         if (name
             .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
             .toLowerCase()
-            .contains(query.toLowerCase())) {
+            .startsWith(query.toLowerCase())) {
           _filterAccountTypeList.add(_accountTypeList[i]);
         }
       }
@@ -94,9 +115,10 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
       _accountData.addAll({'tdsApplicable': false});
+      Map<String, dynamic> responseData = {};
       try {
         if (accountId.isEmpty) {
-          await _accountProvider.createAccount(_accountData);
+          responseData = await _accountProvider.createAccount(_accountData);
           utils.showSuccessSnackbar(
               _screenContext, 'Account Created Successfully');
         } else {
@@ -104,9 +126,15 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
           utils.showSuccessSnackbar(
               _screenContext, 'Account updated Successfully');
         }
-        Future.delayed(Duration(seconds: 1)).then((value) =>
-            Navigator.of(_screenContext)
-                .pushReplacementNamed('/accounts/manage/account'));
+        if (arguments == null || arguments['routeForm'] == null) {
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/accounts/manage/account');
+        } else {
+          arguments['routeFormArguments'] = responseData;
+          Navigator.of(_screenContext).pop(
+            arguments,
+          );
+        }
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
@@ -148,8 +176,9 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                   accountId.isEmpty
                       ? AutocompleteFormField(
                           initialValue: utils.cast<Map<String, dynamic>>(
-                            _accountDetail['type'],
+                            _accountDetail['accountType'],
                           ),
+                          autoFocus: false,
                           focusNode: _typeFocusNode,
                           controller: _typeTextEditingController,
                           autocompleteCallback: (pattern) {
@@ -163,17 +192,23 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                             }
                             return null;
                           },
-                          labelText: 'Type',
+                          labelText: 'Account Type',
                           suggestionFormatter: (suggestion) =>
                               suggestion['name'],
                           textFormatter: (selection) => selection['name'],
                           onSaved: (val) {
                             _accountData.addAll(
-                              {'type': val == null ? null : val['defaultName']},
+                              {
+                                'accountType':
+                                    val == null ? null : val['defaultName']
+                              },
                             );
                           },
                           onSelected: (value) {
-                            _selectedAccountTypes.add(value['defaultName']);
+                            setState(() {
+                              _selectedAccountTypes.clear();
+                              _selectedAccountTypes.add(value['defaultName']);
+                            });
                           },
                           labelStyle: TextStyle(
                             color: Theme.of(context).errorColor,
@@ -193,7 +228,10 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                           style: TextStyle(color: Colors.grey),
                           onSaved: (val) {
                             _accountData.addAll(
-                              {'type': _accountDetail['type']['defaultName']},
+                              {
+                                'accountType': _accountDetail['accountType']
+                                    ['defaultName']
+                              },
                             );
                           },
                         ),
@@ -201,9 +239,8 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                     height: 15.0,
                   ),
                   TextFormField(
-                    initialValue: _accountDetail['name'],
+                    initialValue: name.isEmpty ? _accountDetail['name'] : name,
                     focusNode: _nameFocusNode,
-                    autofocus: true,
                     decoration: InputDecoration(
                       labelText: 'Name',
                       labelStyle: TextStyle(
@@ -280,36 +317,124 @@ class _AccountFormScreenState extends State<AccountFormScreen> {
                       });
                     },
                   ),
-                  SizedBox(
-                    height: 15.0,
-                  ),
-                  AutocompleteFormField(
-                    initialValue: utils.cast<Map<String, dynamic>>(
-                      _accountDetail['parentAccount'],
+                  Visibility(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 15.0,
+                        ),
+                        AutocompleteFormField(
+                          initialValue: utils.cast<Map<String, dynamic>>(
+                            _accountDetail['parentAccount'],
+                          ),
+                          autoFocus: false,
+                          focusNode: _parentAccountFocusNode,
+                          controller: _parentAccountTextEditingController,
+                          autocompleteCallback: (pattern) {
+                            return _accountProvider.accountAutocomplete(
+                              searchText: pattern,
+                              accountType: _selectedAccountTypes,
+                            );
+                          },
+                          validator: null,
+                          labelText: 'Parent Account',
+                          suggestionFormatter: (suggestion) =>
+                              suggestion['name'],
+                          textFormatter: (selection) => selection['name'],
+                          onSaved: (val) {
+                            _accountData.addAll(
+                              {
+                                'parentAccount': val == null
+                                    ? null
+                                    : _parentAccountTextEditingController
+                                            .text.isEmpty
+                                        ? null
+                                        : val['id']
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ),
-                    focusNode: _parentAccountFocusNode,
-                    controller: _parentAccountTextEditingController,
-                    autocompleteCallback: (pattern) {
-                      return _accountProvider.accountAutocomplete(
-                        searchText: pattern,
-                        accountType: _selectedAccountTypes,
-                      );
-                    },
-                    validator: null,
-                    labelText: 'Parent Account',
-                    suggestionFormatter: (suggestion) => suggestion['name'],
-                    textFormatter: (selection) => selection['name'],
-                    onSaved: (val) {
-                      _accountData.addAll(
-                        {
-                          'parentAccount': val == null
-                              ? null
-                              : _parentAccountTextEditingController.text.isEmpty
-                                  ? null
-                                  : val['id']
-                        },
-                      );
-                    },
+                    visible: !_selectedAccountTypes.contains('TRADE_PAYABLE') &&
+                        !_selectedAccountTypes.contains('TRADE_RECEIVABLE'),
+                  ),
+                  Visibility(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 15.0,
+                        ),
+                        AutocompleteFormField(
+                          initialValue: utils.cast<Map<String, dynamic>>(
+                            _accountDetail['party'],
+                          ),
+                          focusNode: _vendorFocusNode,
+                          controller: _vendorTextEditingController,
+                          autocompleteCallback: (pattern) {
+                            return _vendorProvider.vendorAutoComplete(
+                              searchText: pattern,
+                            );
+                          },
+                          validator: null,
+                          labelText: 'Vendor',
+                          suggestionFormatter: (suggestion) =>
+                              suggestion['name'],
+                          textFormatter: (selection) => selection['name'],
+                          onSaved: (val) {
+                            _accountData.addAll(
+                              {
+                                'party': val == null
+                                    ? null
+                                    : _vendorTextEditingController.text.isEmpty
+                                        ? null
+                                        : val['id']
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    visible: _selectedAccountTypes.contains('TRADE_PAYABLE'),
+                  ),
+                  Visibility(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 15.0,
+                        ),
+                        AutocompleteFormField(
+                          initialValue: utils.cast<Map<String, dynamic>>(
+                            _accountDetail['party'],
+                          ),
+                          focusNode: _customerFocusNode,
+                          controller: _customerTextEditingController,
+                          autocompleteCallback: (pattern) {
+                            return _customerProvider.customerAutoComplete(
+                              searchText: pattern,
+                            );
+                          },
+                          validator: null,
+                          labelText: 'Customer',
+                          suggestionFormatter: (suggestion) =>
+                              suggestion['name'],
+                          textFormatter: (selection) => selection['name'],
+                          onSaved: (val) {
+                            _accountData.addAll(
+                              {
+                                'party': val == null
+                                    ? null
+                                    : _customerTextEditingController
+                                            .text.isEmpty
+                                        ? null
+                                        : val['id']
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    visible: _selectedAccountTypes.contains('TRADE_RECEIVABLE'),
                   ),
                   SizedBox(
                     height: 15.0,

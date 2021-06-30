@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import './../../utils.dart' as utils;
@@ -7,24 +6,31 @@ import 'package:http/http.dart' as http;
 
 class InventoryItemProvider with ChangeNotifier {
   final _auth;
-  static const _baseUrl = '/inventory/item';
+  static const _baseUrl = '/inventory';
   InventoryItemProvider(this._auth);
 
   Future<List> inventoryItemAutoComplete({
     @required String searchText,
     @required List inventoryHeads,
   }) async {
-    final url = utils.encodeUrl(
-      path: '$_baseUrl/autocomplete',
+    final url = utils.encodeApiUrl(
+      apiName: 'qsearch',
+      path: '/autocomplete/inventory/',
       organization: _auth.organizationName,
       query: {
-        'search_text': searchText,
-        'head': json.encode(inventoryHeads),
+        'searchText': searchText,
+        'args': inventoryHeads == null
+            ? null
+            : json.encode(
+                {
+                  'heads': inventoryHeads,
+                },
+              ),
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getInventoryList(
@@ -33,16 +39,22 @@ class InventoryItemProvider with ChangeNotifier {
     int perPage,
     String sortOrder,
     String sortColumn,
+    List<String> inventoryHead,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'inventory/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
+      },
+      query: {
+        'args': inventoryHead.contains(null)
+            ? null
+            : json.encode({'heads': inventoryHead}),
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -50,13 +62,10 @@ class InventoryItemProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getInventory(String inventoryId) async {
@@ -69,13 +78,10 @@ class InventoryItemProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deleteInventory(String inventoryId) async {
@@ -88,12 +94,10 @@ class InventoryItemProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> createInventory(Map<String, dynamic> inventoryData) async {
@@ -109,11 +113,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateInventory(
@@ -132,11 +135,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setPriceConfiguration(
@@ -156,11 +158,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getPriceConfiguration(
@@ -178,12 +179,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<List> getDealers(String inventoryId) async {
@@ -193,7 +192,10 @@ class InventoryItemProvider with ChangeNotifier {
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setDealers(
@@ -212,13 +214,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setDealersPreferred(
@@ -237,13 +236,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 201) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> removeDealers(
@@ -262,13 +258,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setUnitConversion(
@@ -277,42 +270,7 @@ class InventoryItemProvider with ChangeNotifier {
   ) async {
     String url = utils.encodeUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/$inventoryId/unit-conversion/add',
-    );
-    final response = await http.post(
-      url,
-      body: json.encode(unitConversionData),
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Auth-Token': _auth.token as String,
-      },
-    );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 201) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
-  }
-
-  Future<List> getUnitConversion(String inventoryId) async {
-    final url = utils.encodeUrl(
-      path: '$_baseUrl/$inventoryId/unit-conversion',
-      organization: _auth.organizationName,
-    );
-    final headers = {'X-Auth-Token': _auth.token as String};
-    final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['conversion'];
-  }
-
-  Future<void> setUnitConversionPreferred(
-    String inventoryId,
-    Map unitConversionData,
-  ) async {
-    String url = utils.encodeUrl(
-      organization: _auth.organizationName,
-      path: '$_baseUrl/$inventoryId/unit-conversion/set-preferred',
+      path: '$_baseUrl/$inventoryId/unit',
     );
     final response = await http.put(
       url,
@@ -322,13 +280,42 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<List> getUnitConversion(String inventoryId) async {
+    final url = utils.encodeUrl(
+      path: '$_baseUrl/$inventoryId/units',
+      organization: _auth.organizationName,
+    );
+    final headers = {'X-Auth-Token': _auth.token as String};
+    final response = await http.get(url, headers: headers);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<void> deleteUnitConversion(String inventoryId, int conversion) async {
+    final url = utils.encodeUrl(
+      organization: _auth.organizationName,
+      path: '$_baseUrl/$inventoryId/unit',
+      query: {
+        'conversion': conversion.toString(),
+      },
+    );
+    final headers = {'X-Auth-Token': _auth.token as String};
+    final response = await http.delete(
+      url,
+      headers: headers,
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setAssignedRacks(
@@ -348,13 +335,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getAssignedRacks(
@@ -372,12 +356,10 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setInventoryOpening(
@@ -391,22 +373,19 @@ class InventoryItemProvider with ChangeNotifier {
     );
     final response = await http.put(
       url,
-      body: json.encode({'trns': batches}),
+      body: json.encode({'items': batches}),
       headers: {
         'Content-Type': 'application/json',
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
-  Future<List> getInventoryOpening(
+  Future<Map> getInventoryOpening(
     String inventoryId,
     String branchId,
   ) async {
@@ -421,11 +400,9 @@ class InventoryItemProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData['trns'];
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

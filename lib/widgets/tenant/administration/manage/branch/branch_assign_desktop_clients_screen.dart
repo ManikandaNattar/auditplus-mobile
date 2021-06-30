@@ -69,9 +69,7 @@ class _BranchAssignDesktopClientsScreenState
       await _branchProvider.assignDesktopClients(branchId, _assignClients);
       utils.showSuccessSnackbar(
           _screenContext, 'Clients Assigned Successfully');
-      Future.delayed(Duration(seconds: 1)).then(
-        (value) => Navigator.of(context).pop(arguments),
-      );
+      Navigator.of(context).pop(arguments);
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -121,6 +119,7 @@ class _BranchAssignDesktopClientsScreenState
     return Form(
       key: _formKey,
       child: AutocompleteFormField(
+        autoFocus: false,
         focusNode: _desktopClientFocusNode,
         controller: _desktopClientTextEditingController,
         labelText: 'Desktop Client',

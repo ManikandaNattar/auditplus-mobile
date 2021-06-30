@@ -48,9 +48,8 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
     try {
       await _rackProvider.deleteRack(rackId);
       utils.showSuccessSnackbar(_screenContext, 'Rack Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/rack'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/rack');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -79,7 +78,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.rack.update',
+                'inv.rck.up',
               ],
             ),
           ),
@@ -98,7 +97,7 @@ class _RackDetailScreenState extends State<RackDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.rack.delete',
+                'inv.rck.dl',
               ],
             ),
           ),

@@ -50,9 +50,8 @@ class _CostCentreDetailScreenState extends State<CostCentreDetailScreen> {
       await _costCentreProvider.deleteCostCentre(costCentreId);
       utils.showSuccessSnackbar(
           _screenContext, 'Cost Centre Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/accounts/manage/cost-centre'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/accounts/manage/cost-centre');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -81,7 +80,7 @@ class _CostCentreDetailScreenState extends State<CostCentreDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.costCentre.update',
+                'ac.cc.up',
               ],
             ),
           ),
@@ -100,7 +99,7 @@ class _CostCentreDetailScreenState extends State<CostCentreDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.costCentre.delete',
+                'ac.cc.dl',
               ],
             ),
           ),

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'widgets/shared/user_branch_selection.dart';
 import './models/organization.dart';
 import './providers/auth/tenant_auth_provider.dart';
@@ -58,16 +59,57 @@ String cloudEncodeUrl({
 }
 
 String encodeApiUrl({
+  @required String apiName,
   @required String path,
   @required String organization,
   Map<String, String> query,
 }) {
   if (kDebugMode) {
-    _domain = 'http://192.168.1.147:4001/api/v1';
+    apiName == 'report'
+        ? _domain = 'http://192.168.1.147:8030/$apiName/api'
+        : _domain = 'http://192.168.1.147:8050/$apiName/api';
   } else {
-    _domain = '${Organization(organization).domain}';
+    _domain = '${Organization(organization).domain}/$apiName/api';
   }
   var url = '$_domain$path?organization=$organization';
+  if (query != null) {
+    query.forEach((k, v) {
+      if (k != null && v != null) {
+        url += '&$k=$v';
+      }
+    });
+  }
+  return url;
+}
+
+String encodeQSearchListApiUrl({
+  @required String path,
+  @required String organization,
+  Map<String, String> filterQuery,
+  Map<String, String> query,
+}) {
+  String queryString = '';
+  if (kDebugMode) {
+    _domain = 'http://192.168.1.147:8050/qsearch/api/list/';
+  } else {
+    _domain = '${Organization(organization).domain}/qsearch/api/list/';
+  }
+  var url = '$_domain$path?organization=$organization';
+  if (filterQuery != null) {
+    filterQuery.forEach((k, v) {
+      if (k != null && v != null) {
+        final encodedKey = json.encode(k);
+        if (k == 'search') {
+          queryString += '$encodedKey:$v,';
+        } else if (k == 'page' || k == 'perPage' || k == 'sortOrder') {
+          queryString += '$encodedKey:${int.parse(v)},';
+        } else {
+          queryString += '$encodedKey:${json.encode(v)},';
+        }
+      }
+    });
+    url += '&filter={${queryString.substring(0, queryString.length - 1)}}';
+  }
   if (query != null) {
     query.forEach((k, v) {
       if (k != null && v != null) {
@@ -108,7 +150,7 @@ Future<void> handleErrorResponse(
     if (message.contains('Organization not found')) {
       Navigator.of(context).pushReplacementNamed('/organization');
     }
-    Scaffold.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message.contains('Failed host lookup')
@@ -189,24 +231,28 @@ Map<String, dynamic> buildSearchQuery(Map<Map<String, String>, dynamic> map) {
 Map<String, Map<String, String>> buildDetailQuery(
     Map<String, Map<String, String>> map) {
   Map<String, Map<String, String>> detailQuery = Map();
-  for (final query in map.entries) {
-    Map<String, String> valueData = Map();
-    final key = query.key;
-    final data = query.value;
-    for (final dataQuery in data.entries) {
-      if (dataQuery.value != null && dataQuery.value != '') {
-        valueData.addAll({dataQuery.key: dataQuery.value});
+  if (map != null) {
+    for (final query in map.entries) {
+      Map<String, String> valueData = Map();
+      final key = query.key;
+      final data = query.value;
+      if (data != null) {
+        for (final dataQuery in data.entries) {
+          if (dataQuery.value != null && dataQuery.value != '') {
+            valueData.addAll({dataQuery.key: dataQuery.value});
+          }
+        }
+        if (valueData.isNotEmpty) {
+          detailQuery.addAll({key: valueData});
+        }
       }
-    }
-    if (valueData.isNotEmpty) {
-      detailQuery.addAll({key: valueData});
     }
   }
   return detailQuery;
 }
 
 void showSuccessSnackbar(BuildContext context, String message) {
-  Scaffold.of(context).showSnackBar(
+  ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
       backgroundColor: Theme.of(context).primaryColor,
@@ -348,7 +394,7 @@ Future<bool> checkPermission() async {
   Map<Permission, PermissionStatus> statuses = {};
   PermissionStatus _permissionStatus;
   _permissionStatus = await Permission.storage.status;
-  if (_permissionStatus.isDenied || _permissionStatus.isUndetermined) {
+  if (_permissionStatus.isDenied) {
     statuses = await [
       Permission.storage,
     ].request();
@@ -367,4 +413,52 @@ Future<File> downloadFile(Uint8List stream, String reportName) async {
   }
   final file = File('${directory.path}/$fileName.pdf');
   return file.writeAsBytes(stream);
+}
+
+bool checkHasMorePages(Map pageContext, int currentPage) {
+  int totalPageCount =
+      (pageContext['totalCount'].toInt() / pageContext['perPage'].toInt())
+          .ceil();
+  if (currentPage == totalPageCount) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+Future<void> launchUrl(String url, BuildContext context) async {
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Could not launch url $url',
+        ),
+      ),
+    );
+  }
+}
+
+dynamic handleResponse(int statusCode, dynamic responseData) {
+  var response;
+  switch (statusCode) {
+    case 200:
+      response = responseData.isNotEmpty ? json.decode(responseData) : null;
+      return response;
+      break;
+    case 201:
+      response = responseData.isNotEmpty ? json.decode(responseData) : null;
+      return response;
+      break;
+    case 401:
+      response = {'message': 'Unauthorized'};
+      throw HttpException(response['message']);
+      break;
+    default:
+      response = json.decode(responseData);
+      throw HttpException(response['message'] is List
+          ? response['message'].join(',')
+          : response['message']);
+  }
 }

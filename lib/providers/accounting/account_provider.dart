@@ -8,44 +8,50 @@ import './../../utils.dart' as utils;
 class AccountProvider extends ChangeNotifier {
   static const _baseUrl = '/accounting/account';
   final _auth;
-
   AccountProvider(this._auth);
 
   Future<List> accountAutocomplete({
     @required String searchText,
     List<String> accountType,
   }) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'qsearch',
       organization: _auth.organizationName,
-      path: '$_baseUrl/autocomplete',
-      query: accountType == null
-          ? {
-              'search_text': searchText,
-            }
-          : {
-              'search_text': searchText,
-              'account_types': json.encode(accountType),
-            },
+      path: '/autocomplete/account/',
+      query: {
+        'searchText': searchText,
+        'args': accountType == null
+            ? null
+            : json.encode(
+                {
+                  'accountTypes': accountType,
+                },
+              ),
+      },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(
       url,
       headers: headers,
     );
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<List> getAccountType() async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'qsearch',
       organization: _auth.organizationName,
-      path: '$_baseUrl/type/list',
+      path: '/fetch/account-types/',
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(
       url,
       headers: headers,
     );
-    return json.decode(response.body)['results'];
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getAccountList(
@@ -55,15 +61,15 @@ class AccountProvider extends ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'account/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -71,11 +77,10 @@ class AccountProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getAccount(String accountId) async {
@@ -88,11 +93,10 @@ class AccountProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deleteAccount(String accountId) async {
@@ -105,10 +109,10 @@ class AccountProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createAccount(
@@ -126,12 +130,10 @@ class AccountProvider extends ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateAccount(
@@ -150,14 +152,13 @@ class AccountProvider extends ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
-  Future<Map<String, dynamic>> getAccountOpening(
+  Future<Map> getAccountOpening(
     String branchId,
     String accountId,
   ) async {
@@ -170,13 +171,16 @@ class AccountProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    return json.decode(response.body);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> setAccountOpening(
     String branchId,
     String accountId,
-    Map<String, dynamic> openingData,
+    List transactions,
   ) async {
     final url = utils.encodeUrl(
       organization: _auth.organizationName,
@@ -184,7 +188,7 @@ class AccountProvider extends ChangeNotifier {
     );
     final response = await http.put(
       url,
-      body: json.encode(openingData),
+      body: json.encode({'items': transactions}),
       headers: {
         'Content-Type': 'application/json',
         'X-Auth-Token': _auth.token as String,

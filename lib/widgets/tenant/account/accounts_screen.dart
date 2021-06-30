@@ -24,107 +24,72 @@ class _AccountsScreenState extends State<AccountsScreen> {
             'checkBranch': false,
             'clickedMenu': '/accounts/manage/account',
             'privileges': [
-              'accounting.account.view',
+              'ac.ac.vw',
             ],
             'features': '',
           },
-          {
-            'title': 'Cost Centre',
-            'icon': Icons.business_center,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/manage/cost-centre',
-            'privileges': [
-              'accounting.costCentre.view',
-            ],
-            'features': '',
-          },
-          {
-            'title': 'Cost Category',
-            'icon': Icons.category,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/manage/cost-category',
-            'privileges': [
-              'accounting.costCategory.view',
-            ],
-            'features': '',
-          },
+          // {
+          //   'title': 'Cost Centre',
+          //   'icon': Icons.business_center,
+          //   'checkBranch': false,
+          //   'clickedMenu': '/accounts/manage/cost-centre/',
+          //   'privileges': [
+          //     'ac.cc .vw',
+          //   ],
+          //   'features': '',
+          // },
+          // {
+          //   'title': 'Cost Category',
+          //   'icon': Icons.category,
+          //   'checkBranch': false,
+          //   'clickedMenu': '/accounts/manage/cost-category/',
+          //   'privileges': [
+          //     'ac.ccat.vw',
+          //   ],
+          //   'features': '',
+          // },
         ],
         {
           'title': 'Vouchers',
           'isExpanded': false,
         }: [
           {
-            'title': 'Income',
-            'icon': Icons.euro_symbol,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/vouchers/income',
+            'title': 'Payment',
+            'icon': Icons.payment,
+            'checkBranch': true,
+            'clickedMenu': '/accounts/vouchers/payment',
             'privileges': [
-              'accounting.incomeReceipt.view',
+              'ac.pmt.vw',
             ],
             'features': '',
           },
           {
             'title': 'Receipt',
             'icon': Icons.receipt,
-            'checkBranch': false,
+            'checkBranch': true,
             'clickedMenu': '/accounts/vouchers/receipt',
             'privileges': [
-              'accounting.incomeReceipt.view',
+              'ac.rcpt.vw',
             ],
             'features': '',
           },
           {
-            'title': 'Expense',
-            'icon': Icons.money,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/vouchers/expense',
+            'title': 'Contra',
+            'icon': Icons.account_balance_wallet,
+            'checkBranch': true,
+            'clickedMenu': '/accounts/vouchers/contra',
             'privileges': [
-              'accounting.expensePayment.view',
-            ],
-            'features': '',
-          },
-          {
-            'title': 'Payment',
-            'icon': Icons.payment,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/vouchers/payment',
-            'privileges': [
-              'accounting.expensePayment.view',
+              'ac.ctra.vw',
             ],
             'features': '',
           },
           {
             'title': 'Journal',
-            'icon': Icons.sticky_note_2,
-            'checkBranch': false,
+            'icon': Icons.money,
+            'checkBranch': true,
             'clickedMenu': '/accounts/vouchers/journal',
             'privileges': [
-              'accounting.journal.view',
-            ],
-            'features': '',
-          },
-        ],
-        {
-          'title': 'Banking',
-          'isExpanded': false,
-        }: [
-          {
-            'title': 'Cash Deposit',
-            'icon': Icons.account_balance_wallet,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/banking/cash-deposit',
-            'privileges': [
-              'accounting.cashDeposit.view',
-            ],
-            'features': '',
-          },
-          {
-            'title': 'Cash Withdrawal',
-            'icon': Icons.atm,
-            'checkBranch': false,
-            'clickedMenu': '/accounts/banking/cash-withdrawal',
-            'privileges': [
-              'accounting.cashWithdrawal.view',
+              'ac.jo.vw',
             ],
             'features': '',
           },

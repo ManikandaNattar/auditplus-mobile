@@ -74,7 +74,7 @@ class GeneralListView extends StatelessWidget {
                           routeName,
                           arguments: {
                             'id': list[index]['id'],
-                            'displayName': list[index]['displayName'],
+                            'displayName': list[index]['title'],
                           },
                         ),
                       ),

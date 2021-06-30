@@ -84,15 +84,12 @@ class _CostCentreFormScreenState extends State<CostCentreFormScreen> {
               _screenContext, 'Cost Centre updated Successfully');
         }
         if (arguments == null || arguments['routeForm'] == null) {
-          Future.delayed(Duration(seconds: 1)).then((value) =>
-              Navigator.of(_screenContext)
-                  .pushReplacementNamed('/accounts/manage/cost-centre'));
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/accounts/manage/cost-centre');
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {

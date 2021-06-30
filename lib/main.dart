@@ -2,20 +2,21 @@ import 'dart:convert';
 
 import 'package:auditplusmobile/providers/accounting/cost_category_provider.dart';
 import 'package:auditplusmobile/providers/accounting/cost_centre_provider.dart';
+import 'package:auditplusmobile/providers/accounting/voucher_provider.dart';
 import 'package:auditplusmobile/providers/administration/branch_provider.dart';
 import 'package:auditplusmobile/providers/administration/cash_register_provider.dart';
 import 'package:auditplusmobile/providers/administration/desktop_client_provider.dart';
 import 'package:auditplusmobile/providers/administration/preference_provider.dart';
 import 'package:auditplusmobile/providers/administration/role_provider.dart';
-import 'package:auditplusmobile/providers/administration/sale_incharge_provider.dart';
+import 'package:auditplusmobile/providers/inventory/sale_incharge_provider.dart';
 import 'package:auditplusmobile/providers/administration/user_provider.dart';
 import 'package:auditplusmobile/providers/administration/warehouse_provider.dart';
 import 'package:auditplusmobile/providers/common_provider.dart';
-import 'package:auditplusmobile/providers/contacts/customer_provider.dart';
-import 'package:auditplusmobile/providers/contacts/doctor_provider.dart';
-import 'package:auditplusmobile/providers/contacts/patient_provider.dart';
-import 'package:auditplusmobile/providers/contacts/vendor_payment_provider.dart';
-import 'package:auditplusmobile/providers/contacts/vendor_provider.dart';
+import 'package:auditplusmobile/providers/inventory/customer_provider.dart';
+import 'package:auditplusmobile/providers/inventory/doctor_provider.dart';
+import 'package:auditplusmobile/providers/inventory/patient_provider.dart';
+import 'package:auditplusmobile/providers/inventory/sale_provider.dart';
+import 'package:auditplusmobile/providers/inventory/vendor_provider.dart';
 import 'package:auditplusmobile/providers/inventory/inventory_item_provider.dart';
 import 'package:auditplusmobile/providers/inventory/manufacturer_provider.dart';
 import 'package:auditplusmobile/providers/inventory/pharma_salt_provider.dart';
@@ -24,9 +25,9 @@ import 'package:auditplusmobile/providers/inventory/section_provider.dart';
 import 'package:auditplusmobile/providers/inventory/unit_provider.dart';
 import 'package:auditplusmobile/providers/qsearch_provider.dart';
 import 'package:auditplusmobile/providers/reports/account_reports_provider.dart';
-import 'package:auditplusmobile/providers/reports/customer_reports_provider.dart';
 import 'package:auditplusmobile/providers/reports/inventory_reports_provider.dart';
-import 'package:auditplusmobile/providers/reports/vendor_reports_provider.dart';
+import 'package:auditplusmobile/providers/reports/purchase_reports_provider.dart';
+import 'package:auditplusmobile/providers/reports/sale_reports_provider.dart';
 import 'package:auditplusmobile/providers/tax/tax_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -191,14 +192,6 @@ class MyApp extends StatelessWidget {
           create: null,
           update: (ctx, auth, _) => SaleInchargeProvider(auth),
         ),
-        ChangeNotifierProxyProvider<TenantAuth, CustomerReportsProvider>(
-          create: null,
-          update: (ctx, auth, _) => CustomerReportsProvider(auth),
-        ),
-        ChangeNotifierProxyProvider<TenantAuth, VendorReportsProvider>(
-          create: null,
-          update: (ctx, auth, _) => VendorReportsProvider(auth),
-        ),
         ChangeNotifierProxyProvider<TenantAuth, AccountReportsProvider>(
           create: null,
           update: (ctx, auth, _) => AccountReportsProvider(auth),
@@ -211,9 +204,21 @@ class MyApp extends StatelessWidget {
           create: null,
           update: (ctx, auth, _) => InventoryReportsProvider(auth),
         ),
-        ChangeNotifierProxyProvider<TenantAuth, VendorPaymentProvider>(
+        ChangeNotifierProxyProvider<TenantAuth, VoucherProvider>(
           create: null,
-          update: (ctx, auth, _) => VendorPaymentProvider(auth),
+          update: (ctx, auth, _) => VoucherProvider(auth),
+        ),
+        ChangeNotifierProxyProvider<TenantAuth, SaleReportsProvider>(
+          create: null,
+          update: (ctx, auth, _) => SaleReportsProvider(auth),
+        ),
+        ChangeNotifierProxyProvider<TenantAuth, PurchaseReportsProvider>(
+          create: null,
+          update: (ctx, auth, _) => PurchaseReportsProvider(auth),
+        ),
+        ChangeNotifierProxyProvider<TenantAuth, SaleProvider>(
+          create: null,
+          update: (ctx, auth, _) => SaleProvider(auth),
         ),
       ],
       child: FutureBuilder<bool>(

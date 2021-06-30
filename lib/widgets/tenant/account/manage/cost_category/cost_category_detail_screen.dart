@@ -51,9 +51,8 @@ class _CostCategoryDetailScreenState extends State<CostCategoryDetailScreen> {
       await _costCategoryProvider.deleteCostCategory(costCategoryId);
       utils.showSuccessSnackbar(
           _screenContext, 'Cost category Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/accounts/manage/cost-category'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/accounts/manage/cost-category');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -82,7 +81,7 @@ class _CostCategoryDetailScreenState extends State<CostCategoryDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.costCategory.update',
+                'ac.ccat.up',
               ],
             ),
           ),
@@ -101,7 +100,7 @@ class _CostCategoryDetailScreenState extends State<CostCategoryDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'accounting.costCategory.delete',
+                'ac.ccat.dl',
               ],
             ),
           ),

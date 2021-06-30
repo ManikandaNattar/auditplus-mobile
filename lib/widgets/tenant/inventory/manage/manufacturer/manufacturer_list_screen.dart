@@ -57,8 +57,8 @@ class _ManufacturerListScreenState extends State<ManufacturerListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addManufacturer(data);
@@ -79,7 +79,6 @@ class _ManufacturerListScreenState extends State<ManufacturerListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
             'subtitle': '',
           };
@@ -174,7 +173,7 @@ class _ManufacturerListScreenState extends State<ManufacturerListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'inventory.manufacturer.create',
+              'inv.man.cr',
             ],
           ),
         ),

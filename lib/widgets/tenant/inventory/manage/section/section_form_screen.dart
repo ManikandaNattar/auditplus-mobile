@@ -77,15 +77,12 @@ class _SectionFormScreenState extends State<SectionFormScreen> {
               _screenContext, 'Section updated Successfully');
         }
         if (arguments == null || arguments['routeForm'] == null) {
-          Future.delayed(Duration(seconds: 1)).then((value) =>
-              Navigator.of(_screenContext)
-                  .pushReplacementNamed('/inventory/manage/section'));
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/inventory/manage/section');
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {

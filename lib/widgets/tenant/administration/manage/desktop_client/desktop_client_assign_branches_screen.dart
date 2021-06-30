@@ -70,9 +70,7 @@ class _DesktopClientAssignBranchesScreenState
       );
       utils.showSuccessSnackbar(
           _screenContext, 'Branches Assigned Successfully');
-      Future.delayed(Duration(seconds: 1)).then(
-        (value) => Navigator.of(context).pop(arguments),
-      );
+      Navigator.of(context).pop(arguments);
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }

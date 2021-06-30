@@ -17,6 +17,7 @@ class UnitListScreen extends StatefulWidget {
 class _UnitListScreenState extends State<UnitListScreen> {
   List<Map<String, dynamic>> _unitList = [];
   UnitProvider _unitProvider;
+  Map pageContext = {};
   Map _formData = {
     'name': '',
     'aliasName': '',
@@ -57,8 +58,8 @@ class _UnitListScreenState extends State<UnitListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addUnit(data);
@@ -79,9 +80,8 @@ class _UnitListScreenState extends State<UnitListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
-            'subtitle': elm['uqc'] == null ? '' : elm['uqc']['code'],
+            'subtitle': elm['symbol'],
           };
         },
       ).toList(),
@@ -174,7 +174,7 @@ class _UnitListScreenState extends State<UnitListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'inventory.unit.create',
+              'inv.unt.cr',
             ],
           ),
         ),

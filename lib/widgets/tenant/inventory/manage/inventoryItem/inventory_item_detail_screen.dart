@@ -48,10 +48,9 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
       {
         'GENERAL INFO': {
           'Name': _inventoryItemData['name'],
-          'AliasName': _inventoryItemData['aliasName'],
           'Unit': _inventoryItemData['unit']['name'],
           'Precision': _inventoryItemData['precision'].toString(),
-          'Tax': _inventoryItemData['tax']['name'],
+          'Tax': _inventoryItemData['tax']['displayName'],
         },
         'PRODUCT INFO': {
           'Section': _inventoryItemData['section'] == null
@@ -77,35 +76,30 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
       await _inventoryItemProvider.deleteInventory(inventoryId);
       utils.showSuccessSnackbar(
           _screenContext, 'Inventory Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/inventory-item'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/inventory-item');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
   }
 
   void _checkVisibility() {
-    if (utils.checkMenuWiseAccess(context, ['inventory.inventory.opening'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.op'])) {
       _menuList.add('Inventory Opening');
     }
-    if (utils
-        .checkMenuWiseAccess(context, ['inventory.inventory.assignRacks'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.ar'])) {
       _menuList.add('Assign Racks');
     }
-    if (utils
-        .checkMenuWiseAccess(context, ['inventory.inventory.unitConversion'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.uc'])) {
       _menuList.add('Unit Conversion');
     }
-    if (utils
-        .checkMenuWiseAccess(context, ['inventory.inventory.priceConfig'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.pc'])) {
       _menuList.add('Price Configuration');
     }
-    if (utils.checkMenuWiseAccess(
-        context, ['inventory.inventory.preferredVendors'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.pfvend'])) {
       _menuList.add('Dealers');
     }
-    if (utils.checkMenuWiseAccess(context, ['inventory.inventory.delete'])) {
+    if (utils.checkMenuWiseAccess(context, ['inv.inv.dl'])) {
       _menuList.add('Delete Inventory');
     }
   }
@@ -117,6 +111,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
         arguments: {
           'id': inventoryId,
           'displayName': inventoryName,
+          'isBatchWiseInventory': _inventoryItemData['bwd'],
         },
       );
     } else if (menu == 'Assign Racks') {
@@ -184,7 +179,7 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.inventory.update',
+                'inv.inv.up',
               ],
             ),
           ),
@@ -207,12 +202,12 @@ class _InventoryItemDetailScreenState extends State<InventoryItemDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.inventory.opening',
-                'inventory.inventory.delete',
-                'inventory.inventory.preferredVendors',
-                'inventory.inventory.priceConfig',
-                'inventory.inventory.unitConversion',
-                'inventory.inventory.assignRacks',
+                'inv.inv.op',
+                'inv.inv.dl',
+                'inv.inv.pfvend',
+                'inv.inv.pc',
+                'inv.inv.uc',
+                'inv.inv.ar',
               ],
             ),
           ),

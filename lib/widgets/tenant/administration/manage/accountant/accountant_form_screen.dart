@@ -41,9 +41,8 @@ class _AccountantFormScreenState extends State<AccountantFormScreen> {
         await _userProvider.addAccountant(_acountantData);
         utils.showSuccessSnackbar(
             _screenContext, 'Accountant added Successfully');
-        Future.delayed(Duration(seconds: 1)).then((value) =>
-            Navigator.of(_screenContext)
-                .pushReplacementNamed('/administration/manage/accountant'));
+        Navigator.of(_screenContext)
+            .pushReplacementNamed('/administration/manage/accountant');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }

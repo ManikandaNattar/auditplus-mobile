@@ -51,11 +51,7 @@ class _InventoryItemUnitConversionFormScreenState
         );
         utils.showSuccessSnackbar(
             _screenContext, 'Unit conversion added Successfully');
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) {
-            Navigator.of(context).pop(arguments);
-          },
-        );
+        Navigator.of(context).pop(arguments);
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
@@ -170,7 +166,7 @@ class _InventoryItemUnitConversionFormScreenState
                                 ),
                                 visible: utils.checkMenuWiseAccess(
                                   context,
-                                  ['inventory.unit.create'],
+                                  ['inv.unt.cr'],
                                 ),
                               ),
                             ),

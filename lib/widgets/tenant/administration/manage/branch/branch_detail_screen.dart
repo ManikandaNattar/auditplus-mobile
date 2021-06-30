@@ -59,26 +59,46 @@ class _BranchDetailScreenState extends State<BranchDetailScreen> {
               ? null
               : _branchData['gstInfo']['location']['name'],
         },
-        'ADDRESS INFO': {
-          'Address': _branchData['addressInfo']['address'],
-          'Pincode': _branchData['addressInfo']['pincode'],
-          'City': _branchData['addressInfo']['city'],
-          'State': _branchData['addressInfo']['state']
-                  .toString()
-                  .replaceAll('null', '')
-                  .isEmpty
-              ? null
-              : _branchData['addressInfo']['state']['name'],
-        },
-        'CONTACT INFO': {
-          'Mobile': _branchData['contactInfo']['mobile'],
-          'Alternate Mobile': _branchData['contactInfo']['alternateMobile'],
-          'Telephone': _branchData['contactInfo']['telephone'],
-          'Email': _branchData['contactInfo']['email'],
-        },
-        'OTHER INFO': {
-          'License Number': _branchData['otherInfo']['licenseNo'],
-        },
+        'ADDRESS INFO': _branchData['addressInfo'] == null
+            ? null
+            : {
+                'Address': _branchData['addressInfo']['address'] == null
+                    ? null
+                    : _branchData['addressInfo']['address'],
+                'Pincode': _branchData['addressInfo']['pincode'] == null
+                    ? null
+                    : _branchData['addressInfo']['pincode'],
+                'City': _branchData['addressInfo']['city'] == null
+                    ? null
+                    : _branchData['addressInfo']['city'],
+                'State': _branchData['addressInfo']['state'] == null
+                    ? null
+                    : _branchData['addressInfo']['state']['name'],
+              },
+        'CONTACT INFO': _branchData['contactInfo'] == null
+            ? null
+            : {
+                'Mobile': _branchData['contactInfo']['mobile'] == null
+                    ? null
+                    : _branchData['contactInfo']['mobile'],
+                'Alternate Mobile':
+                    _branchData['contactInfo']['alternateMobile'] == null
+                        ? null
+                        : _branchData['contactInfo']['alternateMobile'],
+                'Telephone': _branchData['contactInfo']['telephone'] == null
+                    ? null
+                    : _branchData['contactInfo']['telephone'],
+                'Email': _branchData['contactInfo']['email'] == null
+                    ? null
+                    : _branchData['contactInfo']['email'],
+              },
+        'OTHER INFO': _branchData['otherInfo'] == null
+            ? null
+            : {
+                'License Number': _branchData['otherInfo']['licenseNo'] == null
+                    ? null
+                    : _branchData['otherInfo']['licenseNo'],
+              },
       },
     );
   }

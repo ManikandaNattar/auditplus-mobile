@@ -67,12 +67,10 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
 
   Map<String, dynamic> _getWarehouse() {
     _warehouseDetail = arguments['detail'];
-    _stateTextEditingController.text = _warehouseDetail['addressInfo']['state']
-            .toString()
-            .replaceAll('null', '')
-            .isEmpty
-        ? ''
-        : _warehouseDetail['addressInfo']['state']['name'];
+    _stateTextEditingController.text =
+        !_warehouseDetail.keys.contains('addressInfo')
+            ? ''
+            : _warehouseDetail['addressInfo']['state']['name'];
     return _warehouseDetail;
   }
 
@@ -114,10 +112,8 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
           utils.showSuccessSnackbar(
               _screenContext, 'Warehouse updated Successfully');
         }
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) => Navigator.of(_screenContext)
-              .pushReplacementNamed('/administration/manage/warehouse'),
-        );
+        Navigator.of(_screenContext)
+            .pushReplacementNamed('/administration/manage/warehouse');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
@@ -460,7 +456,8 @@ class _WarehouseFormScreenState extends State<WarehouseFormScreen> {
                   height: 15.0,
                 ),
                 AutocompleteFormField(
-                  initialValue: _warehouseDetail.isEmpty
+                  initialValue: _warehouseDetail.isEmpty ||
+                          !_warehouseDetail.keys.contains('addressInfo')
                       ? null
                       : utils.cast<Map<String, dynamic>>(
                           _warehouseDetail['addressInfo']['state']),

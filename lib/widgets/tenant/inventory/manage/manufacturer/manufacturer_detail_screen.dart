@@ -56,9 +56,8 @@ class _ManufacturerDetailScreenState extends State<ManufacturerDetailScreen> {
       await _manufacturerProvider.deleteManufacturer(manufacturerId);
       utils.showSuccessSnackbar(
           _screenContext, 'Manufacturer Deleted Successfully');
-      Future.delayed(Duration(seconds: 2)).then((value) =>
-          Navigator.of(_screenContext)
-              .pushReplacementNamed('/inventory/manage/manufacturer'));
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/inventory/manage/manufacturer');
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -87,7 +86,7 @@ class _ManufacturerDetailScreenState extends State<ManufacturerDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.manufacturer.update',
+                'inv.man.up',
               ],
             ),
           ),
@@ -106,7 +105,7 @@ class _ManufacturerDetailScreenState extends State<ManufacturerDetailScreen> {
             visible: utils.checkMenuWiseAccess(
               context,
               [
-                'inventory.manufacturer.delete',
+                'inv.man.dl',
               ],
             ),
           ),

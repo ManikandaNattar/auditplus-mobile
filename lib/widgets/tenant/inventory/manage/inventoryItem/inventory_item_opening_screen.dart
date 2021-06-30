@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './../../../../../utils.dart' as utils;
+import './../../../../../constants.dart' as constants;
 
 class InventoryItemOpeningScreen extends StatefulWidget {
   @override
@@ -21,6 +22,7 @@ class _InventoryItemOpeningScreenState
   TenantAuth _tenantAuth;
   String inventoryId = '';
   String inventoryName = '';
+  bool isBatchWiseInventory;
   Map _selectedBranch = {};
   List _inventoryOpeningList = [];
   bool _isLoading = true;
@@ -35,24 +37,26 @@ class _InventoryItemOpeningScreenState
     arguments = ModalRoute.of(context).settings.arguments;
     inventoryId = arguments['id'];
     inventoryName = arguments['displayName'];
+    isBatchWiseInventory = arguments['isBatchWiseInventory'];
     _getInventoryOpening();
     super.didChangeDependencies();
   }
 
-  Future<List> _getInventoryOpening() async {
+  Future<void> _getInventoryOpening() async {
     try {
       _selectedBranch = _tenantAuth.selectedBranch;
-      final data = await _inventoryItemProvider.getInventoryOpening(
+      Map data = await _inventoryItemProvider.getInventoryOpening(
         inventoryId,
         _selectedBranch['id'],
       );
-      final preference = await _preferenceProvider.getInventoryPreference(
+      final preference = await _preferenceProvider.getPreference(
         _selectedBranch['id'],
+        ['inventory'],
       );
       setState(() {
         _isLoading = false;
-        _addInventoryOpening(data);
-        _preferenceData.addAll(preference);
+        _addInventoryOpening(data['items']);
+        _preferenceData.addAll(preference['inventory']);
       });
     } catch (error) {
       setState(() {
@@ -61,7 +65,6 @@ class _InventoryItemOpeningScreenState
       });
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
-    return _inventoryOpeningList;
   }
 
   void _addInventoryOpening(List response) {
@@ -70,13 +73,14 @@ class _InventoryItemOpeningScreenState
         (e) {
           return {
             'isExpanded': false,
-            'id': e['id'],
+            'id': response.indexOf(e),
             'batchNo': e['batchNo'],
             'mrp': double.parse('${e['mrp']}'),
-            'pRate': double.parse('${e['pRate']}'),
+            'rate': double.parse('${e['rate']}'),
             'sRate': double.parse('${e['sRate']}'),
-            'expMonth': e['expMonth'],
-            'expYear': e['expYear'],
+            'expiry': e['expiry'] == null
+                ? ''
+                : constants.defaultDate.format(DateTime.parse(e['expiry'])),
             'unitPrecision':
                 e['unitPrecision'] == null ? 0 : e['unitPrecision'],
             'unit': e['unit'],
@@ -93,20 +97,38 @@ class _InventoryItemOpeningScreenState
         List invoices = [];
         invoices.addAll(_inventoryOpeningList.map(
           (e) {
+            if (isBatchWiseInventory == true) {
+              return {
+                'batchNo': e['batchNo'],
+                'mrp': double.parse('${e['mrp']}'),
+                'rate': double.parse('${e['rate']}'),
+                'sRate': double.parse('${e['sRate']}'),
+                'expiry': e['expiry'] == ''
+                    ? null
+                    : constants.isoDateFormat.format(
+                        constants.defaultDate.parse(
+                          e['expiry'],
+                        ),
+                      ),
+                'unitPrecision': e['unitPrecision'],
+                'unitConv': 1,
+                'qty': double.parse(e['qty'].toString()),
+              };
+            }
             return {
-              'id': e['id'].toString().isEmpty ? null : e['id'],
-              'batchNo': e['batchNo'],
+              'batch': inventoryId,
               'mrp': double.parse('${e['mrp']}'),
-              'pRate': double.parse('${e['pRate']}'),
+              'rate': double.parse('${e['rate']}'),
               'sRate': double.parse('${e['sRate']}'),
-              'expMonth': e['expMonth'] == null || e['expMonth'] == ''
+              'expiry': e['expiry'] == ''
                   ? null
-                  : int.parse(e['expMonth'].toString()),
-              'expYear': e['expYear'] == null || e['expYear'] == ''
-                  ? null
-                  : int.parse(e['expYear'].toString()),
+                  : constants.isoDateFormat.format(
+                      constants.defaultDate.parse(
+                        e['expiry'],
+                      ),
+                    ),
               'unitPrecision': e['unitPrecision'],
-              'unit': e['unit']['id'],
+              'unitConv': 1,
               'qty': double.parse(e['qty'].toString()),
             };
           },
@@ -118,14 +140,18 @@ class _InventoryItemOpeningScreenState
         );
         utils.showSuccessSnackbar(
             _screenContext, 'Inventory Opening added Successfully');
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) => Navigator.of(context).pop(
-            arguments,
-          ),
+        Navigator.of(context).pop(
+          arguments,
         );
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
+    } else {
+      utils.handleErrorResponse(
+        _screenContext,
+        'Branch should not be empty!',
+        'tenant',
+      );
     }
   }
 
@@ -186,9 +212,12 @@ class _InventoryItemOpeningScreenState
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'BATCH',
-                      style: Theme.of(context).textTheme.headline4,
+                    Visibility(
+                      child: Text(
+                        'BATCH',
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                      visible: isBatchWiseInventory,
                     ),
                     Text(
                       'QUANTITY',
@@ -229,19 +258,9 @@ class _InventoryItemOpeningScreenState
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            RichText(
-                              text: TextSpan(
-                                text: 'EXPIRY',
-                                style: Theme.of(context).textTheme.headline5,
-                                children: [
-                                  TextSpan(
-                                    text: '(MM/YYYY)',
-                                    style: TextStyle(
-                                      fontSize: 10.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                            Text(
+                              'EXPIRY',
+                              style: Theme.of(context).textTheme.headline5,
                             ),
                             RichText(
                               text: TextSpan(
@@ -327,11 +346,17 @@ class _InventoryItemOpeningScreenState
                               children: [
                                 TableRow(
                                   children: [
-                                    Text(
-                                      e['batchNo'] == null ? '' : e['batchNo'],
-                                      style:
-                                          Theme.of(context).textTheme.bodyText1,
-                                      textAlign: TextAlign.start,
+                                    Visibility(
+                                      child: Text(
+                                        e['batchNo'] == null
+                                            ? ''
+                                            : e['batchNo'],
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText1,
+                                        textAlign: TextAlign.start,
+                                      ),
+                                      visible: isBatchWiseInventory,
                                     ),
                                     Padding(
                                       padding: EdgeInsets.only(
@@ -386,12 +411,7 @@ class _InventoryItemOpeningScreenState
                                             padding:
                                                 EdgeInsets.only(left: 10.0),
                                             child: Text(
-                                              e['expMonth'] == null &&
-                                                      e['expYear'] == null
-                                                  ? ''
-                                                  : e['expMonth'].toString() +
-                                                      '/' +
-                                                      e['expYear'].toString(),
+                                              e['expiry'],
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodyText2,
@@ -403,10 +423,10 @@ class _InventoryItemOpeningScreenState
                                               right: 8.0,
                                             ),
                                             child: Text(
-                                              e['pRate'] == null
+                                              e['rate'] == null
                                                   ? ''
                                                   : double.parse(
-                                                          e['pRate'].toString())
+                                                          e['rate'].toString())
                                                       .toStringAsFixed(2)
                                                       .toString(),
                                               style: Theme.of(context)
@@ -441,10 +461,10 @@ class _InventoryItemOpeningScreenState
                                               right: 20.0,
                                             ),
                                             child: Text(
-                                              e['pRate'] == null
+                                              e['rate'] == null
                                                   ? ''
                                                   : double.parse(
-                                                          e['pRate'].toString())
+                                                          e['rate'].toString())
                                                       .toStringAsFixed(2)
                                                       .toString(),
                                               style: Theme.of(context)
@@ -496,16 +516,16 @@ class _InventoryItemOpeningScreenState
                                   'id': e['id'],
                                   'batchNo': e['batchNo'],
                                   'mrp': e['mrp'],
-                                  'pRate': e['pRate'],
+                                  'rate': e['rate'],
                                   'sRate': e['sRate'],
-                                  'expMonth': e['expMonth'],
-                                  'expYear': e['expYear'],
+                                  'expiry': e['expiry'],
                                   'unitPrecision': e['unitPrecision'],
                                   'unit': e['unit'],
                                   'qty': e['qty'],
                                   'inventoryName': inventoryName,
                                   'inventoryId': inventoryId,
                                   'branch': _selectedBranch,
+                                  'isBatchWiseInventory': isBatchWiseInventory,
                                 },
                               },
                             ).then(
@@ -546,58 +566,59 @@ class _InventoryItemOpeningScreenState
   }
 
   Widget _addInventoryOpeningButtonWidget() {
-    return Visibility(
-      child: SizedBox(
-        height: 45,
-        child: ElevatedButton.icon(
-          label: Text(
-            'Add Inventory Opening',
-            style: Theme.of(context).textTheme.button,
-          ),
-          icon: Icon(
-            Icons.post_add,
-            color: Colors.white,
-          ),
-          style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(32.0),
-            ),
-          ),
-          onPressed: () => Navigator.of(context).pushNamed(
-            '/inventory/manage/inventory-item/opening/form',
-            arguments: {
-              'formData': {
-                'isExpanded': false,
-                'id': '',
-                'batchNo': '',
-                'mrp': '',
-                'pRate': '',
-                'sRate': '',
-                'expMonth': '',
-                'expYear': '',
-                'unitPrecision': '',
-                'unit': '',
-                'qty': '',
-                'inventoryName': inventoryName,
-                'inventoryId': inventoryId,
-                'branch': _selectedBranch,
-              },
-            },
-          ).then(
-            (value) {
-              if (value != null) {
-                Map data = value;
-                setState(() {
-                  _inventoryOpeningList
-                      .removeWhere((element) => element['id'] == data['id']);
-                  _inventoryOpeningList.addAll({data});
-                });
-              }
-            },
+    return SizedBox(
+      height: 45,
+      child: ElevatedButton.icon(
+        label: Text(
+          'Add Inventory Opening',
+          style: Theme.of(context).textTheme.button,
+        ),
+        icon: Icon(
+          Icons.post_add,
+          color: Colors.white,
+        ),
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32.0),
           ),
         ),
+        onPressed: () => Navigator.of(context).pushNamed(
+          '/inventory/manage/inventory-item/opening/form',
+          arguments: {
+            'formData': {
+              'isExpanded': false,
+              'id': _inventoryOpeningList.isEmpty
+                  ? 0
+                  : _inventoryOpeningList
+                          .lastIndexOf(_inventoryOpeningList.last) +
+                      1,
+              'batchNo': '',
+              'mrp': '',
+              'rate': '',
+              'sRate': '',
+              'expiry': '',
+              'unitPrecision': '',
+              'unit': '',
+              'qty': '',
+              'inventoryName': inventoryName,
+              'inventoryId': inventoryId,
+              'branch': _selectedBranch,
+              'isBatchWiseInventory': isBatchWiseInventory,
+            },
+          },
+        ).then(
+          (value) {
+            if (value != null) {
+              Map data = value;
+              setState(() {
+                _inventoryOpeningList
+                    .removeWhere((element) => element['id'] == data['id']);
+                _inventoryOpeningList.addAll({data});
+              });
+            }
+          },
+        ),
       ),
-      visible: _selectedBranch['name'] != 'Select Branch',
     );
   }
 

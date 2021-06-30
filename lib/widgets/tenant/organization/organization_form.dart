@@ -62,9 +62,9 @@ class _OrganizationFormState extends State<OrganizationForm> {
               if (value.isEmpty) {
                 return 'Organization Name should not be empty';
               }
-              if (_organizationProvider.organization['error'] != null) {
-                return 'Organization not found';
-              }
+              // if (_organizationProvider.organization['error'] != null) {
+              //   return 'Organization not found';
+              // }
               return null;
             },
             autofocus: true,

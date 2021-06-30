@@ -83,17 +83,7 @@ class _AdministrationScreenState extends State<AdministrationScreen> {
             'title': 'Accountant',
             'icon': Icons.account_circle,
             'checkBranch': false,
-            'clickedMenu': '/administration/manage/accountant',
-            'privileges': [
-              '',
-            ],
-            'features': '',
-          },
-          {
-            'title': 'Sale Incharge',
-            'icon': Icons.point_of_sale,
-            'checkBranch': false,
-            'clickedMenu': '/administration/manage/sale-incharge',
+            'clickedMenu': '/administration/manage/accountant-/',
             'privileges': [
               '',
             ],

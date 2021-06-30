@@ -59,8 +59,8 @@ class _UserListScreenState extends State<UserListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addUser(data);
@@ -81,9 +81,9 @@ class _UserListScreenState extends State<UserListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['username'],
-            'subtitle': elm['role']['name'],
+            'subtitle': '',
+            // 'subtitle': elm['role'].toString().replaceAll('null', ''),
           };
         },
       ).toList(),

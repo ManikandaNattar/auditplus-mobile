@@ -65,9 +65,7 @@ class _BranchAssignUsersScreenState extends State<BranchAssignUsersScreen> {
       }
       await _branchProvider.assignUsers(branchId, _assignUsers);
       utils.showSuccessSnackbar(_screenContext, 'Users Assigned Successfully');
-      Future.delayed(Duration(seconds: 1)).then(
-        (value) => Navigator.of(context).pop(arguments),
-      );
+      Navigator.of(context).pop(arguments);
     } catch (error) {
       utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
@@ -117,6 +115,7 @@ class _BranchAssignUsersScreenState extends State<BranchAssignUsersScreen> {
     return Form(
       key: _formKey,
       child: AutocompleteFormField(
+        autoFocus: false,
         focusNode: _userFocusNode,
         controller: _userTextEditingController,
         labelText: 'User',

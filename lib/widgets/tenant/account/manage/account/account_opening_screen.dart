@@ -25,8 +25,8 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
   String branchId = '';
   String branchName = '';
   bool _isLoading = true;
-  Map<String, dynamic> _accountOpeningList = {};
-  Map<String, dynamic> _accountOpeningData = {};
+  List _accountOpeningList = [];
+  Map _accountOpeningData = {};
   Map arguments = {};
   Map selectedBranch = {};
 
@@ -48,49 +48,67 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
     super.dispose();
   }
 
-  Future<Map<String, dynamic>> _getAccountOpening() async {
-    selectedBranch = _tenantAuth.selectedBranch;
-    branchId = selectedBranch['id'];
-    branchName = selectedBranch['name'];
-    final data = await _accountProvider.getAccountOpening(branchId, accountId);
-    setState(() {
-      _isLoading = false;
-      _accountOpeningList.addAll(data);
-    });
-    _creditTextEditingController.text = double.parse(
-            _accountOpeningList['credit'].toString().replaceAll('null', '0'))
-        .toStringAsFixed(2);
-    _creditTextEditingController.selection = TextSelection.fromPosition(
-      TextPosition(
-        offset: _creditTextEditingController.text.length,
-      ),
-    );
-    _debitTextEditingController.text = double.parse(
-            _accountOpeningList['debit'].toString().replaceAll('null', '0'))
-        .toStringAsFixed(2);
-    _debitTextEditingController.selection = TextSelection.fromPosition(
-      TextPosition(
-        offset: _debitTextEditingController.text.length,
-      ),
-    );
-    return _accountOpeningList;
+  Future<void> _getAccountOpening() async {
+    try {
+      selectedBranch = _tenantAuth.selectedBranch;
+      branchId = selectedBranch['id'];
+      branchName = selectedBranch['name'];
+      Map data = await _accountProvider.getAccountOpening(branchId, accountId);
+      setState(() {
+        _isLoading = false;
+        _accountOpeningList.addAll(data['items']);
+      });
+      if (_accountOpeningList.isNotEmpty) {
+        _creditTextEditingController.text =
+            double.parse(_accountOpeningList.first['credit'].toString())
+                .toStringAsFixed(2);
+        _creditTextEditingController.selection = TextSelection.fromPosition(
+          TextPosition(
+            offset: _creditTextEditingController.text.length,
+          ),
+        );
+        _debitTextEditingController.text =
+            double.parse(_accountOpeningList.first['debit'].toString())
+                .toStringAsFixed(2);
+        _debitTextEditingController.selection = TextSelection.fromPosition(
+          TextPosition(
+            offset: _debitTextEditingController.text.length,
+          ),
+        );
+      } else {
+        _creditTextEditingController.text = '0.00';
+        _debitTextEditingController.text = '0.00';
+      }
+    } catch (error) {
+      setState(() {
+        _isLoading = false;
+        _accountOpeningList = [];
+      });
+      utils.handleErrorResponse(_screenContext, error.message, 'tenant');
+    }
   }
 
   Future<void> _onSubmit() async {
     if (branchName != 'Select Branch' && _formKey.currentState.validate()) {
       try {
         _formKey.currentState.save();
+        if (_accountOpeningData['credit'] != 0 ||
+            _accountOpeningData['debit'] != 0) {
+          _accountOpeningData['id'] = null;
+          _accountOpeningData['effDate'] = null;
+          _accountOpeningData['refNo'] = null;
+        } else {
+          _accountOpeningData = {};
+        }
         await _accountProvider.setAccountOpening(
           branchId,
           accountId,
-          _accountOpeningData,
+          _accountOpeningData.isEmpty ? [] : [_accountOpeningData],
         );
         utils.showSuccessSnackbar(
             _screenContext, 'Account Opening added Successfully');
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) => Navigator.of(context).pop(
-            arguments,
-          ),
+        Navigator.of(context).pop(
+          arguments,
         );
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
@@ -208,12 +226,6 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
                                   _debitTextEditingController.text = '0';
                                 }
                               },
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return 'Credit should not be empty!';
-                                }
-                                return null;
-                              },
                             ),
                           ),
                           SizedBox(
@@ -235,19 +247,15 @@ class _AccountOpeningScreenState extends State<AccountOpeningScreen> {
                               keyboardType: TextInputType.number,
                               style: Theme.of(context).textTheme.subtitle1,
                               onSaved: (val) {
-                                _accountOpeningData['debit'] =
-                                    double.parse(val);
+                                if (val.isNotEmpty) {
+                                  _accountOpeningData['debit'] =
+                                      double.parse(val);
+                                }
                               },
                               onChanged: (value) {
                                 if (value.isNotEmpty) {
                                   _creditTextEditingController.text = '0';
                                 }
-                              },
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return 'Debit should not be empty!';
-                                }
-                                return null;
                               },
                             ),
                           ),

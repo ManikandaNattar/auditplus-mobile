@@ -37,6 +37,8 @@ class _InventoryFilterFormState extends State<InventoryFilterForm> {
   String barcodeFilterKey;
   String hsnCodeFilterKey;
   Map _formData = Map();
+  List _taxList = [];
+  List _filterTaxList = [];
 
   @override
   void dispose() {
@@ -74,12 +76,33 @@ class _InventoryFilterFormState extends State<InventoryFilterForm> {
             : _formData['manufacturer']['name'];
     _taxController.text = _formData['tax'] == '' || _formData['tax'] == null
         ? ''
-        : _formData['tax']['name'];
+        : _formData['tax']['displayName'];
     _hsnCodeController.text = _formData['hsnCode'];
     nameFilterKey = _formData['nameFilterKey'];
     aliasNameFilterKey = _formData['aliasNameFilterKey'];
     barcodeFilterKey = _formData['barcodeFilterKey'];
     hsnCodeFilterKey = _formData['hsnCodeFilterKey'];
+  }
+
+  Future<List> _getTaxList(String query) async {
+    _filterTaxList.clear();
+    if (_taxList.isEmpty) {
+      _taxList = await _taxProvider.taxAutoComplete();
+    }
+    if (query.toString().isNotEmpty) {
+      for (int i = 0; i <= _taxList.length - 1; i++) {
+        String name = _taxList[i]['displayName'];
+        if (name
+            .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
+            .toLowerCase()
+            .startsWith(query.toLowerCase())) {
+          _filterTaxList.add(_taxList[i]);
+        }
+      }
+    } else {
+      _filterTaxList = _taxList;
+    }
+    return _filterTaxList;
   }
 
   Widget _buildFilterForm(BuildContext context) {
@@ -244,14 +267,15 @@ class _InventoryFilterFormState extends State<InventoryFilterForm> {
                   focusNode: _taxFocusNode,
                   controller: _taxController,
                   autocompleteCallback: (pattern) {
-                    return _taxProvider.taxAutoComplete(
-                      searchText: pattern,
+                    return _getTaxList(
+                      pattern,
                     );
                   },
                   validator: null,
                   labelText: 'Tax',
-                  suggestionFormatter: (suggestion) => suggestion['name'],
-                  textFormatter: (selection) => selection['name'],
+                  suggestionFormatter: (suggestion) =>
+                      suggestion['displayName'],
+                  textFormatter: (selection) => selection['displayName'],
                   onSaved: (val) {
                     if (val != null) {
                       _formData['tax'] = _taxController.text.isEmpty

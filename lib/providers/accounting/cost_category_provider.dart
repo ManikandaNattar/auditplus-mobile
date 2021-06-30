@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,17 +13,18 @@ class CostCategoryProvider extends ChangeNotifier {
   Future<List> costCategoryAutocomplete({
     @required String searchText,
   }) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'qsearch',
       organization: _auth.organizationName,
-      path: '$_baseUrl/autocomplete',
-      query: {'search_text': searchText},
+      path: '/autocomplete/cost-category/',
+      query: {'searchText': searchText},
     );
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(
       url,
       headers: headers,
     );
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getCostCategoryList(
@@ -34,15 +34,15 @@ class CostCategoryProvider extends ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'cost-category/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -50,11 +50,10 @@ class CostCategoryProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getCostCategory(String costCategoryId) async {
@@ -67,11 +66,10 @@ class CostCategoryProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deleteCostCategory(String costCategoryId) async {
@@ -84,10 +82,10 @@ class CostCategoryProvider extends ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createCostCategory(
@@ -105,12 +103,10 @@ class CostCategoryProvider extends ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateCostCategory(
@@ -129,10 +125,9 @@ class CostCategoryProvider extends ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

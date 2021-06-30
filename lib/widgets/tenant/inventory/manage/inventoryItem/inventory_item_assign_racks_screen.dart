@@ -38,6 +38,7 @@ class _InventoryItemAssignRacksScreenState
   String rack2Id = '';
   String rack3Id = '';
   String rack4Id = '';
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -97,11 +98,21 @@ class _InventoryItemAssignRacksScreenState
             _screenContext, 'Racks assigned Successfully');
         setState(() {
           _assingedRacksDetail.clear();
+          _isLoading = false;
         });
         _getAssingedRacks();
       } catch (error) {
+        setState(() {
+          _isLoading = false;
+        });
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
+    } else {
+      utils.handleErrorResponse(
+        _screenContext,
+        'Branch should not be empty!',
+        'tenant',
+      );
     }
   }
 
@@ -194,7 +205,7 @@ class _InventoryItemAssignRacksScreenState
                       ),
                       visible: utils.checkMenuWiseAccess(
                         context,
-                        ['inventory.rack.create'],
+                        ['inv.rck.cr'],
                       ),
                     ),
                   ),
@@ -252,7 +263,7 @@ class _InventoryItemAssignRacksScreenState
                       ),
                       visible: utils.checkMenuWiseAccess(
                         context,
-                        ['inventory.rack.create'],
+                        ['inv.rck.cr'],
                       ),
                     ),
                   ),
@@ -310,7 +321,7 @@ class _InventoryItemAssignRacksScreenState
                       ),
                       visible: utils.checkMenuWiseAccess(
                         context,
-                        ['inventory.rack.create'],
+                        ['inv.rck.cr'],
                       ),
                     ),
                   ),
@@ -368,7 +379,7 @@ class _InventoryItemAssignRacksScreenState
                       ),
                       visible: utils.checkMenuWiseAccess(
                         context,
-                        ['inventory.rack.create'],
+                        ['inv.rck.cr'],
                       ),
                     ),
                   ),
@@ -408,7 +419,12 @@ class _InventoryItemAssignRacksScreenState
         ),
         actions: [
           TextButton(
-            onPressed: () => _onSubmit(),
+            onPressed: () {
+              setState(() {
+                _isLoading = true;
+              });
+              _onSubmit();
+            },
             child: Text(
               'SAVE',
               style: TextStyle(
@@ -423,7 +439,8 @@ class _InventoryItemAssignRacksScreenState
         future: _getAssingedRacks(),
         builder: (BuildContext context, snapShot) {
           _screenContext = context;
-          return snapShot.connectionState == ConnectionState.waiting
+          return snapShot.connectionState == ConnectionState.waiting ||
+                  _isLoading == true
               ? Center(
                   child: CircularProgressIndicator(),
                 )

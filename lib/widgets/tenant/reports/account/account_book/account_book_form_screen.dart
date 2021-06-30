@@ -33,6 +33,7 @@ class _AccountBookFormScreenState extends State<AccountBookFormScreen> {
   String fromDate = '';
   String toDate = '';
   bool _allBranchSelected = false;
+  List<String> accountTypes = [];
   Map<String, dynamic> _branchData = {
     'id': '-1',
     'name': 'All Branch',
@@ -40,10 +41,61 @@ class _AccountBookFormScreenState extends State<AccountBookFormScreen> {
   };
 
   @override
+  void initState() {
+    _checkMenuAccess();
+    super.initState();
+  }
+
+  @override
   void dispose() {
     _branchTextEditingController.dispose();
     _branchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _checkMenuAccess() {
+    if (utils.checkMenuWiseAccess(
+      context,
+      [
+        'rpt.ac.acbk',
+        'rpt.ac.eftacbk',
+        'rpt.cus.cusbk',
+        'rpt.vend.vendbk',
+      ],
+    )) {
+      accountTypes = null;
+    } else {
+      if (utils.checkMenuWiseAccess(
+        context,
+        [
+          'rpt.ac.eftacbk',
+        ],
+      )) {
+        accountTypes.add(
+          'EFT_ACCOUNT',
+        );
+      }
+      if (utils.checkMenuWiseAccess(
+        context,
+        [
+          'rpt.cus.cusbk',
+        ],
+      )) {
+        accountTypes.add(
+          'TRADE_RECEIVABLE',
+        );
+      }
+      if (utils.checkMenuWiseAccess(
+        context,
+        [
+          'rpt.vend.vendbk',
+        ],
+      )) {
+        accountTypes.add(
+          'TRADE_PAYABLE',
+        );
+      }
+    }
   }
 
   @override
@@ -239,6 +291,7 @@ class _AccountBookFormScreenState extends State<AccountBookFormScreen> {
                 autocompleteCallback: (pattern) async {
                   return await _accountProvider.accountAutocomplete(
                     searchText: pattern,
+                    accountType: accountTypes,
                   );
                 },
                 validator: (value) {

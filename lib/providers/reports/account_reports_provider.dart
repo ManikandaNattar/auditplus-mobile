@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
@@ -18,14 +17,15 @@ class AccountReportsProvider with ChangeNotifier {
     List branch,
     int pageNo,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeApiUrl(
+      apiName: 'report',
       organization: _auth.organizationName,
-      path: '$_baseUrl/account-book',
+      path: '/account-book',
       query: {
-        'account_id': accountId,
-        'branch_id': json.encode(branch),
-        'from_date': fromDate,
-        'to_date': toDate,
+        'account': accountId,
+        'branch': json.encode(branch),
+        'fromDate': fromDate,
+        'toDate': toDate,
         'page': pageNo.toString(),
       },
     );
@@ -34,11 +34,7 @@ class AccountReportsProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(response.statusCode, response.body);
   }
 
   Future<Uint8List> getAccountBookPrintData(
@@ -67,14 +63,60 @@ class AccountReportsProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    if (response.statusCode != 200) {
-      final responseData = json.decode(response.body);
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    } else {
-      final responseData = response.bodyBytes;
-      return responseData;
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<Map<String, dynamic>> getAccountOutstandingReport(
+    List accountTypes,
+    List groupBy,
+    int pageNo,
+    String orderBy,
+    Map<String, List> filterArguments,
+  ) async {
+    final url = utils.encodeApiUrl(
+      apiName: 'report',
+      organization: _auth.organizationName,
+      path: '/account-outstanding',
+      query: {
+        'filter': filterArguments == null ? null : json.encode(filterArguments),
+        'group': groupBy == null ? null : json.encode(groupBy),
+        'accountType': accountTypes == null ? null : json.encode(accountTypes),
+        'page': pageNo.toString(),
+        'sort': orderBy,
+      },
+    );
+    final headers = {'X-Auth-Token': _auth.token as String};
+    final response = await http.get(
+      url,
+      headers: headers,
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
+  }
+
+  Future<Map<String, dynamic>> generateAccountOutstandingReport(
+    Map<String, dynamic> generateData,
+  ) async {
+    String url = utils.encodeUrl(
+      organization: _auth.organizationName,
+      path: '$_baseUrl/account-outstanding/generate',
+    );
+    final response = await http.post(
+      url,
+      body: json.encode(generateData),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': _auth.token as String,
+      },
+    );
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

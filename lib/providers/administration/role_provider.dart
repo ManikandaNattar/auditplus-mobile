@@ -6,16 +6,16 @@ import './../../utils.dart' as utils;
 
 class RoleProvider with ChangeNotifier {
   final _auth;
-  static const _baseUrl = '/administration/role';
   RoleProvider(this._auth);
 
   Future<List> roleAutoComplete({@required String searchText}) async {
-    final url = utils.encodeUrl(
-        path: '$_baseUrl/autocomplete',
+    final url = utils.encodeApiUrl(
+        apiName: 'qsearch',
+        path: '/autocomplete/role/',
         organization: _auth.organizationName,
-        query: {'search_text': searchText});
+        query: {'searchText': searchText});
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 }

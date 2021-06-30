@@ -57,8 +57,8 @@ class _PharmaSaltListScreenState extends State<PharmaSaltListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addSalt(data);
@@ -79,7 +79,6 @@ class _PharmaSaltListScreenState extends State<PharmaSaltListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
             'subtitle': '',
           };
@@ -174,7 +173,7 @@ class _PharmaSaltListScreenState extends State<PharmaSaltListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'inventory.pharmaSalt.create',
+              'inv.pslt.cr',
             ],
           ),
         ),

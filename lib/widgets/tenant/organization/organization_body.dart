@@ -9,9 +9,6 @@ import './organization_loader.dart';
 import '../../shared/show_data_empty_image.dart';
 
 class OrganizationBody extends StatefulWidget {
-  final BuildContext _screenContext;
-
-  OrganizationBody(this._screenContext);
   @override
   _OrganizationBodyState createState() => _OrganizationBodyState();
 }
@@ -43,38 +40,36 @@ class _OrganizationBodyState extends State<OrganizationBody> {
       ),
       isScrollControlled: true,
       builder: (_) {
-        return SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(widget._screenContext).viewInsets.bottom,
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      Text(
-                        'Join Organization',
-                        style: Theme.of(context).textTheme.headline1,
-                      ),
-                    ],
-                  ),
+        return FractionallySizedBox(
+          heightFactor: 0.8,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    Text(
+                      'Join Organization',
+                      style: Theme.of(context).textTheme.headline1,
+                    ),
+                  ],
                 ),
-                Divider(
-                  thickness: 1.0,
+              ),
+              Divider(
+                thickness: 1.0,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 0.0,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 0.0),
-                  child: OrganizationForm(),
-                ),
-              ],
-            ),
+                child: OrganizationForm(),
+              ),
+            ],
           ),
         );
       },
@@ -91,7 +86,9 @@ class _OrganizationBodyState extends State<OrganizationBody> {
               organizations.removeWhere((elm) => elm == organizationName);
               organizations.add(organizationName);
               prefs.setStringList('organizations', organizations);
-              _organizations.add(Organization(organizationName));
+              setState(() {
+                _organizations.add(Organization(organizationName));
+              });
             },
           );
         }

@@ -1,3 +1,4 @@
+import 'package:auditplusmobile/providers/accounting/account_provider.dart';
 import 'package:auditplusmobile/providers/administration/branch_provider.dart';
 import 'package:auditplusmobile/providers/common_provider.dart';
 import 'package:auditplusmobile/providers/tax/tax_provider.dart';
@@ -19,6 +20,8 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
   BranchProvider _branchProvider;
   TaxProvider _taxProvider;
   CommonProvider _commonProvider;
+  AccountProvider _accountProvider;
+
   String branchId = '';
   String branchName = '';
   bool _pharmacyRetail = false;
@@ -29,6 +32,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
       TextEditingController();
   TextEditingController _locationTextEditingController =
       TextEditingController();
+  TextEditingController _accountTextEditingController = TextEditingController();
   FocusNode _nameFocusNode = FocusNode();
   FocusNode _aliasNameFocusNode = FocusNode();
   FocusNode _displayNameFocusNode = FocusNode();
@@ -61,6 +65,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
   Map<String, dynamic> _otherInfoData = {};
   Map<String, dynamic> _contactInfoData = {};
   Map<String, dynamic> _addressInfoData = {};
+  String accountId = '';
 
   @override
   void dispose() {
@@ -88,6 +93,7 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
     _branchProvider = Provider.of<BranchProvider>(context);
     _taxProvider = Provider.of<TaxProvider>(context);
     _commonProvider = Provider.of<CommonProvider>(context);
+    _accountProvider = Provider.of<AccountProvider>(context);
     arguments = ModalRoute.of(context).settings.arguments;
     if (arguments != null) {
       branchId = arguments['id'];
@@ -100,10 +106,14 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
   Map<String, dynamic> _getBranch() {
     _branchDetail = arguments['detail'];
     regTypeInitialValue = _branchDetail['gstInfo']['regType'];
+    _pharmacyRetail = _branchDetail['features']['pharmacyRetail'];
     _inventoryHeadTextEditingController.text =
         _branchDetail.keys.contains('inventoryHead')
             ? _branchDetail['inventoryHead']['name']
             : '';
+    _accountTextEditingController.text = _branchDetail.keys.contains('account')
+        ? _branchDetail['account']['name']
+        : '';
     _regTypeTextEditingController.text = _branchDetail['gstInfo']['regType']
             .toString()
             .replaceAll('null', '')
@@ -116,12 +126,10 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
             .isEmpty
         ? ''
         : _branchDetail['gstInfo']['location']['name'];
-    _stateTextEditingController.text = _branchDetail['addressInfo']['state']
-            .toString()
-            .replaceAll('null', '')
-            .isEmpty
-        ? ''
-        : _branchDetail['addressInfo']['state']['name'];
+    _stateTextEditingController.text =
+        _branchDetail.keys.contains('addressInfo')
+            ? _branchDetail['addressInfo']['state']['name']
+            : '';
     return _branchDetail;
   }
 
@@ -228,10 +236,8 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
           utils.showSuccessSnackbar(
               _screenContext, 'Branch updated Successfully');
         }
-        Future.delayed(Duration(seconds: 1)).then(
-          (value) => Navigator.of(_screenContext)
-              .pushReplacementNamed('/administration/manage/branch'),
-        );
+        Navigator.of(_screenContext)
+            .pushReplacementNamed('/administration/manage/branch');
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
@@ -387,6 +393,74 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                       ),
                     ),
                   ),
+                  SizedBox(
+                    height: 15.0,
+                  ),
+                  AutocompleteFormField(
+                    initialValue: utils.cast<Map<String, dynamic>>(
+                      _branchDetail['account'],
+                    ),
+                    autoFocus: false,
+                    controller: _accountTextEditingController,
+                    autocompleteCallback: (pattern) {
+                      return _accountProvider.accountAutocomplete(
+                        searchText: pattern,
+                        accountType: [
+                          "BRANCH_TRANSFER",
+                        ],
+                      );
+                    },
+                    validator: (val) {
+                      if (accountId.isEmpty && val == null) {
+                        return 'Account should not be empty';
+                      }
+                      return null;
+                    },
+                    labelText: 'Account',
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).errorColor,
+                    ),
+                    suggestionFormatter: (suggestion) => suggestion['name'],
+                    textFormatter: (selection) => selection['name'],
+                    onSaved: (val) {
+                      _branchData.addAll({
+                        'account': accountId.isEmpty ? val['id'] : accountId
+                      });
+                    },
+                    suffixIconWidget: Visibility(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        onPressed: () => Navigator.of(context).pushNamed(
+                          '/accounts/manage/account/form',
+                          arguments: {
+                            'routeForm': 'BranchToAccount',
+                            'id': branchId,
+                            'displayName': branchName,
+                            'detail': _branchDetail,
+                            'formInputName': _accountTextEditingController.text,
+                          },
+                        ).then((value) {
+                          if (value != null) {
+                            setState(() {
+                              arguments = value;
+                              accountId = arguments['routeFormArguments']['id'];
+                              _accountTextEditingController.text =
+                                  arguments['routeFormArguments']['name'];
+                            });
+                          }
+                        }),
+                      ),
+                      visible: utils.checkMenuWiseAccess(
+                        context,
+                        [
+                          'ac.ac.cr',
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -514,9 +588,8 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                       return _getLocationList(pattern);
                     },
                     onSaved: (val) {
-                      _gstInfoData.addAll({
-                        'location': val == null ? null : val['defaultName']
-                      });
+                      _gstInfoData.addAll(
+                          {'location': val == null ? null : val['code']});
                     },
                     validator: (value) {
                       if (value == null) {
@@ -832,7 +905,8 @@ class _BranchFormScreenState extends State<BranchFormScreen> {
                   height: 15.0,
                 ),
                 AutocompleteFormField(
-                  initialValue: _branchDetail.isEmpty
+                  initialValue: _branchDetail.isEmpty ||
+                          !_branchDetail.keys.contains('addressInfo')
                       ? null
                       : utils.cast<Map<String, dynamic>>(
                           _branchDetail['addressInfo']['state']),

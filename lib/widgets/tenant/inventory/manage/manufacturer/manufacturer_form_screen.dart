@@ -76,10 +76,8 @@ class _ManufacturerFormScreenState extends State<ManufacturerFormScreen> {
                   .pushReplacementNamed('/inventory/manage/manufacturer'));
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {

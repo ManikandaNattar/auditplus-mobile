@@ -21,6 +21,7 @@ class _DesktopClientDetailScreenState extends State<DesktopClientDetailScreen> {
   List<String> _menuList = [
     'Assign Branches',
     'Generate Token',
+    'Delete Desktop Client',
   ];
   @override
   void didChangeDependencies() {
@@ -65,6 +66,25 @@ class _DesktopClientDetailScreenState extends State<DesktopClientDetailScreen> {
         screenContext: _screenContext,
         detail: _desktopClientData,
       );
+    } else if (menu == 'Delete Desktop Client') {
+      utils.showAlertDialog(
+        _screenContext,
+        _deleteDesktopClient,
+        'Delete Desktop Client?',
+        'Are you sure want to delete',
+      );
+    }
+  }
+
+  Future<void> _deleteDesktopClient() async {
+    try {
+      await _desktopClientProvider.deleteDesktopClient(desktopClientId);
+      utils.showSuccessSnackbar(
+          _screenContext, 'Desktop Client Deleted Successfully');
+      Navigator.of(_screenContext)
+          .pushReplacementNamed('/administration/manage/desktop-client');
+    } catch (error) {
+      utils.handleErrorResponse(_screenContext, error.message, 'tenant');
     }
   }
 

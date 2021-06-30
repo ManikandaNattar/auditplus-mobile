@@ -25,7 +25,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/inventory-item',
             'privileges': [
-              'inventory.inventory.view',
+              'inv.inv.vw',
             ],
             'features': '',
           },
@@ -35,7 +35,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/manufacturer',
             'privileges': [
-              'inventory.manufacturer.view',
+              'inv.man.vw',
             ],
             'features': '',
           },
@@ -45,7 +45,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/rack',
             'privileges': [
-              'inventory.rack.view',
+              'inv.rck.vw',
             ],
             'features': '',
           },
@@ -55,7 +55,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/section',
             'privileges': [
-              'inventory.section.view',
+              'inv.sec.vw',
             ],
             'features': '',
           },
@@ -65,7 +65,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/unit',
             'privileges': [
-              'inventory.unit.view',
+              'inv.unt.vw',
             ],
             'features': '',
           },
@@ -75,7 +75,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/manage/pharma-salt',
             'privileges': [
-              'inventory.pharmaSalt.view',
+              'inv.pslt.vw',
             ],
             'features': 'pharmacy',
           },
@@ -85,12 +85,42 @@ class _InventoryScreenState extends State<InventoryScreen> {
           'isExpanded': false,
         }: [
           {
+            'title': 'Customer',
+            'icon': Icons.group,
+            'checkBranch': true,
+            'clickedMenu': '/inventory/sale/customer',
+            'privileges': [
+              'inv.cus.vw',
+            ],
+            'features': '',
+          },
+          {
+            'title': 'Doctor',
+            'icon': Icons.local_hospital,
+            'checkBranch': true,
+            'clickedMenu': '/inventory/sale/doctor',
+            'privileges': [
+              'inv.doc.vw',
+            ],
+            'features': 'pharmacy',
+          },
+          {
+            'title': 'Patient',
+            'icon': Icons.local_pharmacy,
+            'checkBranch': true,
+            'clickedMenu': '/inventory/sale/patient',
+            'privileges': [
+              'inv.pat.vw',
+            ],
+            'features': 'pharmacy',
+          },
+          {
             'title': 'Sale',
             'icon': Icons.point_of_sale,
             'checkBranch': true,
             'clickedMenu': '/inventory/sale',
             'privileges': [
-              'inventory.sale.view',
+              'inv.sal.vw',
             ],
             'features': '',
           },
@@ -100,7 +130,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/sale/sale-return',
             'privileges': [
-              'inventory.saleReturn.view',
+              'inv.salret.vw',
+            ],
+            'features': '',
+          },
+          {
+            'title': 'Sale Incharge',
+            'icon': Icons.point_of_sale,
+            'checkBranch': false,
+            'clickedMenu': '/inventory/sale/sale-incharge',
+            'privileges': [
+              'inv.sinc.vw',
             ],
             'features': '',
           },
@@ -110,12 +150,22 @@ class _InventoryScreenState extends State<InventoryScreen> {
           'isExpanded': false,
         }: [
           {
+            'title': 'Vendor',
+            'icon': Icons.person,
+            'checkBranch': true,
+            'clickedMenu': '/inventory/purchase/vendor',
+            'privileges': [
+              'inv.vend.vw',
+            ],
+            'features': '',
+          },
+          {
             'title': 'Purchase',
             'icon': Icons.shopping_cart,
             'checkBranch': true,
             'clickedMenu': '/inventory/purchase',
             'privileges': [
-              'inventory.purchase.view',
+              'inv.pur.vw',
             ],
             'features': '',
           },
@@ -125,7 +175,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             'checkBranch': true,
             'clickedMenu': '/inventory/purchase/purchase-return',
             'privileges': [
-              'inventory.purchaseReturn.view',
+              'inv.purret.vw',
             ],
             'features': '',
           },

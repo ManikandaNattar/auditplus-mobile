@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -11,23 +10,25 @@ class UserProvider with ChangeNotifier {
   UserProvider(this._auth);
 
   Future<List> userAutoComplete({@required String searchText}) async {
-    final url = utils.encodeUrl(
-        path: '$_baseUrl/autocomplete',
+    final url = utils.encodeApiUrl(
+        apiName: 'qsearch',
+        path: '/autocomplete/user/',
         organization: _auth.organizationName,
-        query: {'search_text': searchText});
+        query: {'searchText': searchText});
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<List> accountantAutoComplete({@required String searchText}) async {
-    final url = utils.encodeUrl(
-        path: '$_baseUrl/external-accountant-autocomplete',
+    final url = utils.encodeApiUrl(
+        apiName: 'qsearch',
+        path: '/autocomplete/external-accountant-autocomplete/',
         organization: _auth.organizationName,
         query: {'search_text': searchText});
     final headers = {'X-Auth-Token': _auth.token as String};
     final response = await http.get(url, headers: headers);
-    return json.decode(response.body)['results'];
+    return json.decode(response.body)['records'];
   }
 
   Future<Map<String, dynamic>> getUserList(
@@ -37,15 +38,15 @@ class UserProvider with ChangeNotifier {
     String sortOrder,
     String sortColumn,
   ) async {
-    final url = utils.encodeUrl(
+    final url = utils.encodeQSearchListApiUrl(
       organization: _auth.organizationName,
-      path: '$_baseUrl/list',
-      query: {
+      path: 'user/',
+      filterQuery: {
         'search': searchQuery.isEmpty ? null : json.encode(searchQuery),
         'page': pageNo.toString(),
-        'per_page': perPage.toString(),
-        'sort_column': sortColumn.isEmpty ? null : sortColumn,
-        'sort_order': sortOrder.isEmpty ? null : sortOrder,
+        'perPage': perPage.toString(),
+        'sortColumn': sortColumn.isEmpty ? null : sortColumn,
+        'sortOrder': sortOrder.isEmpty ? null : sortOrder,
       },
     );
     final headers = {'X-Auth-Token': _auth.token as String};
@@ -53,11 +54,10 @@ class UserProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> getUser(String userId) async {
@@ -70,11 +70,10 @@ class UserProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> deactivateUser(String userId) async {
@@ -91,10 +90,10 @@ class UserProvider with ChangeNotifier {
       headers: headers,
       body: json.encode({'userId': userId}),
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> createUser(
@@ -112,12 +111,10 @@ class UserProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> updateUser(
@@ -136,11 +133,10 @@ class UserProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> assignBranches(
@@ -159,13 +155,10 @@ class UserProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    if (response.body.isNotEmpty) {
-      final responseData = json.decode(response.body);
-      if (response.statusCode != 200) {
-        final message = responseData['message'];
-        throw HttpException(message is List ? message.join(',') : message);
-      }
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<List> getUserAssignedBranches(String userId) async {
@@ -178,7 +171,10 @@ class UserProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    return json.decode(response.body);
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map> resetPassword(String id) async {
@@ -195,13 +191,10 @@ class UserProvider with ChangeNotifier {
       headers: headers,
       body: json.encode({'userId': id}),
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<List> getAccountantList() async {
@@ -214,8 +207,10 @@ class UserProvider with ChangeNotifier {
       url,
       headers: headers,
     );
-    final responseData = json.decode(response.body);
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map<String, dynamic>> addAccountant(
@@ -233,12 +228,10 @@ class UserProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 201) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<Map> removeAccountant(int accountantCode) async {
@@ -255,12 +248,9 @@ class UserProvider with ChangeNotifier {
       headers: headers,
       body: json.encode({'actCode': accountantCode}),
     );
-    final responseData = json.decode(response.body);
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message'] is List
-          ? responseData['message'].join(',')
-          : responseData['message']);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

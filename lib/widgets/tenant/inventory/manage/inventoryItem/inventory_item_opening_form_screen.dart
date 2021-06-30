@@ -1,8 +1,10 @@
 import 'package:auditplusmobile/providers/administration/preference_provider.dart';
+
 import 'package:auditplusmobile/providers/inventory/unit_provider.dart';
 import 'package:auditplusmobile/providers/qsearch_provider.dart';
 import 'package:auditplusmobile/providers/tax/tax_provider.dart';
 import 'package:auditplusmobile/widgets/shared/autocomplete_form_field.dart';
+import 'package:auditplusmobile/widgets/shared/date_picker_form_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -22,18 +24,20 @@ class _InventoryItemOpeningFormScreenState
   UnitProvider _unitProvider;
   TaxProvider _taxProvider;
   FocusNode _batchNoFocusNode = FocusNode();
-  FocusNode _expMonthFocusNode = FocusNode();
-  FocusNode _expYearFocusNode = FocusNode();
+  FocusNode _expiryFocusNode = FocusNode();
   FocusNode _quantityFocusNode = FocusNode();
   FocusNode _unitFocusNode = FocusNode();
-  FocusNode _pRateFocusNode = FocusNode();
+  FocusNode _rateFocusNode = FocusNode();
   FocusNode _mrpFocusNode = FocusNode();
   FocusNode _sRateFocusNode = FocusNode();
   TextEditingController _unitTextEditingController = TextEditingController();
   TextEditingController _mrpTextEditingController = TextEditingController();
   TextEditingController _sRateTextEditingController = TextEditingController();
+  TextEditingController _expiryDateTextEditingController =
+      TextEditingController();
   List _unitList = [];
   List _filterUnitList = [];
+  List _unitConversionList = [];
   Map<String, dynamic> _inventoryInfo = {};
   Map<String, dynamic> _preferenceData = {};
   Map<String, dynamic> _formData = Map();
@@ -43,16 +47,16 @@ class _InventoryItemOpeningFormScreenState
   @override
   void dispose() {
     _batchNoFocusNode.dispose();
-    _expMonthFocusNode.dispose();
-    _expYearFocusNode.dispose();
+    _expiryFocusNode.dispose();
     _quantityFocusNode.dispose();
     _unitFocusNode.dispose();
-    _pRateFocusNode.dispose();
+    _rateFocusNode.dispose();
     _mrpFocusNode.dispose();
     _sRateFocusNode.dispose();
     _unitTextEditingController.dispose();
     _mrpTextEditingController.dispose();
     _sRateTextEditingController.dispose();
+    _expiryDateTextEditingController.dispose();
     super.dispose();
   }
 
@@ -76,18 +80,19 @@ class _InventoryItemOpeningFormScreenState
           _formData['sRate'] == null ? '' : _formData['sRate'].toString();
       _unitTextEditingController.text =
           _formData['unit'] == '' ? '' : _formData['unit']['name'];
+      _expiryDateTextEditingController.text = _formData['expiry'];
       final data = await _qSearchProvider.getInventoryInfo(
         _formData['inventoryId'],
         _formData['branch']['id'],
-        _formData['branch']['inventoryHead'],
       );
-      final preference = await _preferenceProvider.getInventoryPreference(
+      final preference = await _preferenceProvider.getPreference(
         _formData['branch']['id'],
+        ['inventory'],
       );
       setState(() {
         _isLoading = false;
         _inventoryInfo.addAll(data);
-        _preferenceData.addAll(preference);
+        _preferenceData.addAll(preference['inventory']);
       });
     }
     return _inventoryInfo;
@@ -105,10 +110,17 @@ class _InventoryItemOpeningFormScreenState
     _filterUnitList.clear();
     if (_unitList.isEmpty) {
       List _unitData = await _unitProvider.unitAutoComplete(searchText: '');
-      List _unitConversion = _inventoryInfo['unitConversion'];
-      for (int i = 0; i <= _unitConversion.length - 1; i++) {
-        _unitList.addAll(_unitData
-            .where((element) => element['id'] == _unitConversion[i]['unit']));
+      _unitConversionList = _inventoryInfo['units'];
+      if (_unitConversionList != null && _unitConversionList.isNotEmpty) {
+        for (int i = 0; i <= _unitConversionList.length - 1; i++) {
+          _unitList.addAll(
+            _unitData.where(
+              (element) => element['id'] == _unitConversionList[i]['unit'],
+            ),
+          );
+        }
+      } else {
+        _unitList.addAll(_unitData);
       }
     }
     if (query.toString().isNotEmpty) {
@@ -117,7 +129,7 @@ class _InventoryItemOpeningFormScreenState
         if (name
             .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
             .toLowerCase()
-            .contains(query.toLowerCase())) {
+            .startsWith(query.toLowerCase())) {
           _filterUnitList.add(_unitList[i]);
         }
       }
@@ -129,10 +141,10 @@ class _InventoryItemOpeningFormScreenState
 
   Future<void> _getSaleRate(double pRate) async {
     double sRate;
-    List _gstList = await _taxProvider.taxAutoComplete(searchText: '');
+    List _gstList = await _taxProvider.taxAutoComplete();
     Map _gstRatio = _gstList
-        .where((element) => element['id'] == _inventoryInfo['tax'])
-        .map((e) => e['gstRatio'])
+        .where((element) => element['name'] == _inventoryInfo['tax'])
+        .map((e) => e['ratio'])
         .single as Map;
     if (_inventoryInfo['sMargin'] == null) {
       sRate = 0.00;
@@ -212,124 +224,77 @@ class _InventoryItemOpeningFormScreenState
                         ),
                         child: Column(
                           children: [
-                            TextFormField(
-                              initialValue: _formData['batchNo'] == null
-                                  ? ''
-                                  : _formData['batchNo'],
-                              autofocus:
-                                  _formData['batchNo'].toString().isEmpty,
-                              focusNode: _batchNoFocusNode,
-                              decoration: InputDecoration(
-                                labelText: 'Batch',
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.text,
-                              style: Theme.of(context).textTheme.subtitle1,
-                              textInputAction: TextInputAction.next,
-                              onEditingComplete: () {
-                                _batchNoFocusNode.unfocus();
-                                FocusScope.of(context).requestFocus(
-                                  _preferenceData['enableExp'] &&
-                                          _preferenceData['expRequired'] == true
-                                      ? _expMonthFocusNode
-                                      : _quantityFocusNode,
-                                );
-                              },
-                              validator: (value) {
-                                if (value.isEmpty) {
-                                  return 'Batch should not be empty!';
-                                }
-                                return null;
-                              },
-                              onSaved: (val) {
-                                if (val.isNotEmpty) {
-                                  _formData['batchNo'] = val;
-                                }
-                              },
-                            ),
-                            SizedBox(
-                              height: 15.0,
-                            ),
                             Visibility(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              child: Column(
                                 children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      initialValue: _formData['expMonth'] ==
-                                              null
-                                          ? ''
-                                          : _formData['expMonth'].toString(),
-                                      focusNode: _expMonthFocusNode,
-                                      decoration: InputDecoration(
-                                        labelText: 'Expiry Month',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      style:
-                                          Theme.of(context).textTheme.subtitle1,
-                                      textInputAction: TextInputAction.next,
-                                      onEditingComplete: () {
-                                        _expMonthFocusNode.unfocus();
-                                        FocusScope.of(context)
-                                            .requestFocus(_expYearFocusNode);
-                                      },
-                                      validator: (value) {
-                                        if (value.isEmpty) {
-                                          return 'Expiry Month should not be empty!';
-                                        }
-                                        return null;
-                                      },
-                                      onSaved: (val) {
-                                        if (val.isNotEmpty) {
-                                          _formData['expMonth'] = val;
-                                        }
-                                      },
+                                  TextFormField(
+                                    initialValue: _formData['batchNo'] == null
+                                        ? ''
+                                        : _formData['batchNo'],
+                                    readOnly: _formData['batchNo']
+                                        .toString()
+                                        .isNotEmpty,
+                                    autofocus:
+                                        _formData['batchNo'].toString().isEmpty,
+                                    focusNode: _batchNoFocusNode,
+                                    decoration: InputDecoration(
+                                      labelText: 'Batch',
+                                      border: OutlineInputBorder(),
                                     ),
+                                    keyboardType: TextInputType.text,
+                                    style:
+                                        Theme.of(context).textTheme.subtitle1,
+                                    textInputAction: TextInputAction.next,
+                                    onEditingComplete: () {
+                                      _batchNoFocusNode.unfocus();
+                                      FocusScope.of(context).requestFocus(
+                                        _preferenceData['enableExp'] &&
+                                                _preferenceData[
+                                                        'expRequired'] ==
+                                                    true
+                                            ? _expiryFocusNode
+                                            : _quantityFocusNode,
+                                      );
+                                    },
+                                    validator: (value) {
+                                      if (value.isEmpty) {
+                                        return 'Batch should not be empty!';
+                                      }
+                                      return null;
+                                    },
+                                    onSaved: (val) {
+                                      if (val.isNotEmpty) {
+                                        _formData['batchNo'] = val;
+                                      }
+                                    },
                                   ),
                                   SizedBox(
-                                    width: 15.0,
+                                    height: 15.0,
                                   ),
-                                  Expanded(
-                                    child: TextFormField(
-                                      initialValue: _formData['expYear'] == null
-                                          ? ''
-                                          : _formData['expYear'].toString(),
-                                      focusNode: _expYearFocusNode,
-                                      decoration: InputDecoration(
-                                        labelText: 'Expiry Year',
-                                        border: OutlineInputBorder(),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      style:
-                                          Theme.of(context).textTheme.subtitle1,
-                                      textInputAction: TextInputAction.next,
-                                      onEditingComplete: () {
-                                        _expYearFocusNode.unfocus();
-                                        FocusScope.of(context)
-                                            .requestFocus(_quantityFocusNode);
-                                      },
-                                      validator: (value) {
-                                        if (value.isEmpty) {
-                                          return 'Expiry Year should not be empty!';
-                                        }
-                                        return null;
-                                      },
-                                      onSaved: (val) {
-                                        if (val.isNotEmpty) {
-                                          _formData['expYear'] = val;
-                                        }
-                                      },
-                                    ),
+                                ],
+                              ),
+                              visible:
+                                  _formData['isBatchWiseInventory'] == true,
+                            ),
+                            Visibility(
+                              child: Column(
+                                children: [
+                                  DatePickerFormField(
+                                    title: 'Expiry Date',
+                                    controller:
+                                        _expiryDateTextEditingController,
+                                    onSaved: (value) {
+                                      _formData['expiry'] = value;
+                                    },
+                                  ),
+                                  SizedBox(
+                                    height: 15.0,
                                   ),
                                 ],
                               ),
                               visible: _preferenceData['enableExp'] &&
-                                  _preferenceData['expRequired'],
-                            ),
-                            SizedBox(
-                              height: 15.0,
+                                  _preferenceData['expRequired'] &&
+                                  _formData['isBatchWiseInventory'],
                             ),
                             TextFormField(
                               initialValue: _formData['qty'] == null
@@ -386,15 +351,22 @@ class _InventoryItemOpeningFormScreenState
                               onSaved: (val) {
                                 _formData['unit'] = val;
                               },
+                              onSelected: (val) {
+                                _formData['unitConv'] = _unitConversionList
+                                    .where(
+                                      (element) => element['unit'] == val['id'],
+                                    )
+                                    .single['conversion'];
+                              },
                             ),
                             SizedBox(
                               height: 15.0,
                             ),
                             TextFormField(
-                              initialValue: _formData['pRate'] == null
+                              initialValue: _formData['rate'] == null
                                   ? ''
-                                  : _formData['pRate'].toString(),
-                              focusNode: _pRateFocusNode,
+                                  : _formData['rate'].toString(),
+                              focusNode: _rateFocusNode,
                               decoration: InputDecoration(
                                 labelText: 'P.Rate(TAX EXCL.)',
                                 border: OutlineInputBorder(),
@@ -403,19 +375,19 @@ class _InventoryItemOpeningFormScreenState
                               style: Theme.of(context).textTheme.subtitle1,
                               textInputAction: TextInputAction.next,
                               onEditingComplete: () {
-                                _pRateFocusNode.unfocus();
+                                _rateFocusNode.unfocus();
                                 FocusScope.of(context)
                                     .requestFocus(_mrpFocusNode);
                               },
                               validator: (value) {
                                 if (value.isEmpty) {
-                                  return 'P.Rate should not be empty!';
+                                  return 'Rate should not be empty!';
                                 }
                                 return null;
                               },
                               onSaved: (val) {
                                 if (val.isNotEmpty) {
-                                  _formData['pRate'] = val;
+                                  _formData['rate'] = val;
                                 }
                               },
                               onChanged: (value) {

@@ -51,7 +51,8 @@ class _InventoryItemUnitConversionScreenState
             'preferredForPurchase': e['preferredForPurchase'],
             'preferredForSale': e['preferredForSale'],
             'primary': e['primary'],
-            'unit': e['unit'],
+            'unitName': e['unitName'],
+            'unitId': e['unitId']
           };
         },
       ),
@@ -60,12 +61,36 @@ class _InventoryItemUnitConversionScreenState
 
   Future<void> _setUnitConversionPreferred() async {
     try {
-      await _inventoryItemProvider.setUnitConversionPreferred(
+      await _inventoryItemProvider.setUnitConversion(
         inventoryId,
         _unitConversionData,
       );
       utils.showSuccessSnackbar(
           _screenContext, 'Unit conversion added Successfully');
+      Future.delayed(Duration(seconds: 1)).then(
+        (value) {
+          setState(() {
+            _isLoading = true;
+            _unitConversionList.clear();
+            _unitConversionData.clear();
+            _preferredChanged = false;
+          });
+          _getUnitConversionList();
+        },
+      );
+    } catch (error) {
+      utils.handleErrorResponse(_screenContext, error.message, 'tenant');
+    }
+  }
+
+  Future<void> _deleteUnitConversionPreferred(int unitConversion) async {
+    try {
+      await _inventoryItemProvider.deleteUnitConversion(
+        inventoryId,
+        unitConversion,
+      );
+      utils.showSuccessSnackbar(
+          _screenContext, 'Unit conversion removed Successfully');
       Future.delayed(Duration(seconds: 1)).then(
         (value) {
           setState(() {
@@ -136,7 +161,7 @@ class _InventoryItemUnitConversionScreenState
                             vertical: -4,
                           ),
                           title: Text(
-                            e['unit']['name'],
+                            e['unitName'] == null ? '' : e['unitName'],
                             style: Theme.of(context).textTheme.headline1,
                           ),
                           subtitle: Text(
@@ -190,13 +215,23 @@ class _InventoryItemUnitConversionScreenState
                             onPressed: () {
                               if (_preferredChanged) {
                                 _unitConversionData = {
-                                  'unit': e['unit']['id'],
+                                  'unit': e['unitId'],
+                                  'conversion': e['conversion'],
                                   'preferredForPurchase':
                                       e['preferredForPurchase'],
                                   'preferredForSale': e['preferredForSale'],
                                 };
                                 _setUnitConversionPreferred();
                               }
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color: Theme.of(context).errorColor,
+                            ),
+                            onPressed: () {
+                              _deleteUnitConversionPreferred(e['conversion']);
                             },
                           )
                         ],

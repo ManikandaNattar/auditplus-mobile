@@ -30,10 +30,9 @@ class InventoryBook extends StatelessWidget {
             ? Center(
                 child: ShowDataEmptyImage(),
               )
-            : ListView.separated(
+            : ListView.builder(
                 controller: _scrollController,
-                itemCount: int.parse(formData['maxPage'].toString()) >
-                        int.parse(formData['pageNo'].toString())
+                itemCount: formData['hasMorePages'] == true
                     ? list.length + 1
                     : list.length,
                 itemBuilder: (_, index) {
@@ -53,9 +52,11 @@ class InventoryBook extends StatelessWidget {
                       children: [
                         Table(
                           columnWidths: {
-                            0: FlexColumnWidth(150.0),
+                            0: FlexColumnWidth(
+                              MediaQuery.of(context).size.width - 120.0,
+                            ),
                             1: FlexColumnWidth(
-                              MediaQuery.of(context).size.width - 160.0,
+                              200.0,
                             ),
                           },
                           children: [
@@ -66,7 +67,9 @@ class InventoryBook extends StatelessWidget {
                                     right: 10.0,
                                   ),
                                   child: Text(
-                                    '${list[index]['date']}-${list[index]['refNo']}-${list[index]['voucherType']}',
+                                    list[index]['refNo'] == ''
+                                        ? '${list[index]['date']}_${list[index]['voucherType']}'
+                                        : '${list[index]['date']}_${list[index]['refNo']}_${list[index]['voucherType']}',
                                     style: Theme.of(context)
                                         .textTheme
                                         .subtitle1
@@ -125,26 +128,34 @@ class InventoryBook extends StatelessWidget {
                             ),
                           ],
                         ),
-                        SizedBox(
-                          height: 7.0,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 10.0),
-                          child: Text(
-                            list[index]['particulars'],
-                            style:
-                                Theme.of(context).textTheme.subtitle2.copyWith(
-                                      letterSpacing: 0.5,
-                                    ),
+                        Visibility(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 7.0,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 10.0),
+                                child: Text(
+                                  list[index]['particulars'],
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .subtitle2
+                                      .copyWith(
+                                        letterSpacing: 0.5,
+                                      ),
+                                ),
+                              ),
+                            ],
                           ),
+                          visible:
+                              list[index]['particulars'].toString().isNotEmpty,
+                        ),
+                        Divider(
+                          thickness: 0.75,
                         ),
                       ],
                     ),
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return Divider(
-                    thickness: 0.75,
                   );
                 },
               ),
@@ -164,9 +175,11 @@ class InventoryBook extends StatelessWidget {
         children: [
           Table(
             columnWidths: {
-              0: FlexColumnWidth(240.0),
+              0: FlexColumnWidth(
+                MediaQuery.of(context).size.width - 120.0,
+              ),
               1: FlexColumnWidth(
-                MediaQuery.of(context).size.width - 280.0,
+                160.0,
               ),
             },
             children: [
@@ -177,7 +190,7 @@ class InventoryBook extends StatelessWidget {
                       right: 10.0,
                     ),
                     child: Text(
-                      'DATE-REF.NO-VOU.TYPE',
+                      'DATE_REF.NO_VOU.TYPE',
                       style: Theme.of(context).textTheme.headline4.copyWith(
                             letterSpacing: 0.5,
                           ),

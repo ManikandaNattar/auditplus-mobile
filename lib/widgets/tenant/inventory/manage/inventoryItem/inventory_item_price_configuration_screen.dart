@@ -1,5 +1,5 @@
 import 'package:auditplusmobile/providers/auth/tenant_auth_provider.dart';
-import 'package:auditplusmobile/providers/contacts/customer_provider.dart';
+import 'package:auditplusmobile/providers/inventory/customer_provider.dart';
 import 'package:auditplusmobile/providers/inventory/inventory_item_provider.dart';
 import 'package:auditplusmobile/widgets/shared/app_bar_branch_selection.dart';
 import 'package:auditplusmobile/widgets/shared/show_data_empty_image.dart';
@@ -29,7 +29,6 @@ class _InventoryItemPriceConfigurationScreenState
   TabController _tabController;
   Map _priceConfigData = {};
   Map<String, dynamic> _priceConfigDetail = {};
-  Map _saleDiscountData = {};
   Map _customerDiscountData = {};
   List _customerGroupList = [];
   String inventoryId = '';
@@ -66,9 +65,8 @@ class _InventoryItemPriceConfigurationScreenState
       inventoryId,
       _selectedBranch['id'],
     );
-    if (_priceConfigDetail['sDiscount'] != null &&
-        _priceConfigDetail['sDiscount']['cRatio'] != null) {
-      _customerDiscountData.addAll(_priceConfigDetail['sDiscount']['cRatio']);
+    if (_priceConfigDetail['sCustomerDisc'] != null) {
+      _customerDiscountData.addAll(_priceConfigDetail['sCustomerDisc']);
     }
     return _priceConfigDetail;
   }
@@ -82,12 +80,7 @@ class _InventoryItemPriceConfigurationScreenState
     if (_selectedBranch['name'] != 'Select Branch') {
       _formKey.currentState.save();
       try {
-        _saleDiscountData['cRatio'] = _customerDiscountData;
-        _priceConfigData['sDiscount'] = _saleDiscountData;
-        _priceConfigData['branch'] = {
-          'id': _selectedBranch['id'],
-          'name': _selectedBranch['name'],
-        };
+        _priceConfigData['sCustomerDisc'] = _customerDiscountData;
         await _inventoryItemProvider.setPriceConfiguration(
           inventoryId,
           _selectedBranch['id'],
@@ -103,6 +96,12 @@ class _InventoryItemPriceConfigurationScreenState
       } catch (error) {
         utils.handleErrorResponse(_screenContext, error.message, 'tenant');
       }
+    } else {
+      utils.handleErrorResponse(
+        _screenContext,
+        'Branch Should not be empty!',
+        'tenant',
+      );
     }
   }
 
@@ -150,11 +149,8 @@ class _InventoryItemPriceConfigurationScreenState
               height: 15.0,
             ),
             TextFormField(
-              initialValue: _priceConfigDetail['sDiscount'] == null
-                  ? ''
-                  : _priceConfigDetail['sDiscount']['ratio']
-                      .toString()
-                      .replaceAll('null', ''),
+              initialValue:
+                  _priceConfigDetail['sDisc'].toString().replaceAll('null', ''),
               focusNode: _defaultDiscountRatioFocusNode,
               decoration: InputDecoration(
                 labelText: 'Default Discount Ratio (%)',
@@ -163,7 +159,7 @@ class _InventoryItemPriceConfigurationScreenState
               keyboardType: TextInputType.number,
               style: Theme.of(context).textTheme.subtitle1,
               onSaved: (val) {
-                _saleDiscountData['ratio'] =
+                _priceConfigData['sDisc'] =
                     val.isEmpty ? null : double.parse(val);
               },
             ),
@@ -199,9 +195,7 @@ class _InventoryItemPriceConfigurationScreenState
                     onPressed: () {
                       _showCustomerBasedDiscountBottomSheet(
                         context: _screenContext,
-                        ratio: _priceConfigDetail['sDiscount'] == null ||
-                                _priceConfigDetail['sDiscount']['cRatio'] ==
-                                    null
+                        ratio: _priceConfigDetail['sCustomerDisc'] == null
                             ? '0'
                             : _getCustomerRatio(e['id']),
                         customerGroupId: e['id'],
@@ -224,8 +218,8 @@ class _InventoryItemPriceConfigurationScreenState
   String _getCustomerRatio(String customerGroupId) {
     String cRatio = '';
     _priceConfigDetail.forEach((key, value) {
-      if (key == 'sDiscount') {
-        Map customerGroupRatio = value['cRatio'];
+      if (key == 'sCustomerDisc') {
+        Map customerGroupRatio = value;
         customerGroupRatio.forEach((key, value) {
           if (key == customerGroupId) {
             cRatio = value.toString();
@@ -249,10 +243,10 @@ class _InventoryItemPriceConfigurationScreenState
           top: Radius.circular(16.0),
         ),
       ),
-      isScrollControlled: false,
+      isScrollControlled: true,
       builder: (_) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.89,
+        return FractionallySizedBox(
+          heightFactor: 0.8,
           child: _showCustomerBasedDiscountForm(
             ratio,
             customerGroupId,

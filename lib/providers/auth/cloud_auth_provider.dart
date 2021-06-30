@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,10 +51,10 @@ class CloudAuth extends ChangeNotifier {
     prefs.setString('cloud_auth_info', authInfo);
     _token = responseData['token'];
     _email = email;
-
-    if (responseData['error'] != null) {
-      throw HttpException(responseData['message']);
-    }
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 
   Future<void> logout() async {

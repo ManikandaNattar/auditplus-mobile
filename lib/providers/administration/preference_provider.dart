@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
@@ -7,17 +6,18 @@ import './../../utils.dart' as utils;
 
 class PreferenceProvider with ChangeNotifier {
   final _auth;
-  static const _baseUrl = '/administration/preference';
   PreferenceProvider(this._auth);
 
-  Future<Map<String, dynamic>> getInventoryPreference(
+  Future<Map<String, dynamic>> getPreference(
     String branchId,
+    List<String> menuName,
   ) async {
     String url = utils.encodeUrl(
         organization: _auth.organizationName,
-        path: '$_baseUrl/inventory',
+        path: '/administration/preference',
         query: {
           'branch': branchId,
+          'code': json.encode(menuName),
         });
     final response = await http.get(
       url,
@@ -26,11 +26,9 @@ class PreferenceProvider with ChangeNotifier {
         'X-Auth-Token': _auth.token as String,
       },
     );
-    final responseData = json.decode(response.body);
-    if (response.statusCode != 200) {
-      final message = responseData['message'];
-      throw HttpException(message is List ? message.join(',') : message);
-    }
-    return responseData;
+    return utils.handleResponse(
+      response.statusCode,
+      response.body,
+    );
   }
 }

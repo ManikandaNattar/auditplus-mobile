@@ -71,8 +71,7 @@ class _StickyGroupedListViewState<T, E>
         ListView.builder(
           key: widget.key,
           controller: _scrollController,
-          itemCount: int.parse(widget.paginationData['maxPage'].toString()) >
-                  int.parse(widget.paginationData['pageNo'].toString())
+          itemCount: widget.paginationData['hasMorePages'] == true
               ? widget.elements.length * 2 + 1
               : widget.elements.length * 2,
           itemBuilder: (context, index) {

@@ -2,13 +2,13 @@ import 'package:auditplusmobile/providers/auth/tenant_auth_provider.dart';
 import 'package:auditplusmobile/providers/reports/account_reports_provider.dart';
 import 'package:auditplusmobile/widgets/shared/app_bar_branch_selection.dart';
 import 'package:auditplusmobile/widgets/shared/progress_loader.dart';
+import 'package:auditplusmobile/widgets/shared/report/report_book.dart';
+import 'package:auditplusmobile/widgets/shared/report/report_book_header.dart';
 import 'package:auditplusmobile/widgets/shared/show_data_empty_image.dart';
-import 'package:auditplusmobile/widgets/tenant/reports/account/account_book/account_book_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:open_file/open_file.dart';
 import 'package:provider/provider.dart';
-import './account_book.dart';
 import './../../../../../utils.dart' as utils;
 import './../../../../../constants.dart' as constants;
 
@@ -23,7 +23,6 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
   TenantAuth _tenantAuth;
   List<Map<String, dynamic>> _accountBookList = [];
   int _pageNo = 1;
-  int _maxPage = 0;
   double _totalCredit = 0;
   double _totaldebit = 0;
   double _opening = 0;
@@ -31,6 +30,7 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
   bool _isLoading = true;
   bool _pdfLoading = false;
   Map _userSelectedBranch = {};
+  bool _hasMorePages = false;
   var inputFromDate;
   var outputFromDate;
   var inputToDate;
@@ -45,10 +45,7 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
 
   void _routeToForm() {
     Navigator.of(context)
-        .pushNamed(
-      '/reports/account/account-book-form',
-      arguments: _formData,
-    )
+        .pushNamed('/reports/account/account-book/form', arguments: _formData)
         .then((result) {
       if (result != null) {
         setState(() {
@@ -79,7 +76,7 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
   }
 
   void onScrollEnd() {
-    if (_maxPage > _pageNo) {
+    if (_hasMorePages == true) {
       setState(() {
         _pageNo += 1;
         _getAccountBookList();
@@ -100,12 +97,12 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
         _formData['branch'],
         _pageNo,
       );
-      _maxPage = response['pageContext']['maxPage'];
-      _totalCredit = double.parse(response['credit'].toString());
-      _totaldebit = double.parse(response['debit'].toString());
-      _opening = double.parse(response['opening'].toString());
-      _closing = double.parse(response['closing'].toString());
+      _totalCredit = double.parse(response['balance']['credit'].toString());
+      _totaldebit = double.parse(response['balance']['debit'].toString());
+      _opening = double.parse(response['balance']['opening'].toString());
+      _closing = double.parse(response['balance']['closing'].toString());
       List data = response['records'];
+      _hasMorePages = utils.checkHasMorePages(response['pageContext'], _pageNo);
       setState(() {
         _isLoading = false;
         addAccountBook(data);
@@ -126,9 +123,9 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
         (elm) {
           return {
             'date': constants.defaultDate.format(DateTime.parse(elm['date'])),
-            'particulars': elm['particulars'],
-            'voucherType': elm['voucherType'],
-            'refNo': elm['refNo'],
+            'particulars': elm['particulars'].toString().replaceAll('null', ''),
+            'voucherType': elm['voucherName'],
+            'refNo': elm['refNo'].toString().replaceAll('null', ''),
             'credit': elm['credit'],
             'debit': elm['debit'],
           };
@@ -223,7 +220,8 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
                 Container(
                   child: Column(
                     children: [
-                      AccountBookHeader(
+                      ReportBookHeader(
+                        reportName: 'account',
                         formData: _formData,
                       ),
                       _hasFormData() == false
@@ -233,7 +231,7 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
                               ),
                             )
                           : Expanded(
-                              child: AccountBook(
+                              child: ReportBook(
                                 formData: {
                                   'pageNo': _pageNo,
                                   'credit': _totalCredit,
@@ -241,7 +239,8 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
                                   'opening': _opening,
                                   'closing': _closing,
                                   'isLoading': _isLoading,
-                                  'maxPage': _maxPage,
+                                  'hasMorePages': _hasMorePages,
+                                  'reportName': 'Account',
                                 },
                                 list: _accountBookList,
                                 onScrollEnd: () => onScrollEnd(),
@@ -250,9 +249,11 @@ class _AccountBookScreenState extends State<AccountBookScreen> {
                     ],
                   ),
                 ),
-                ProgressLoader(
-                  pdfLoading: _pdfLoading,
-                  message: 'Generating PDF.please wait...',
+                Visibility(
+                  child: ProgressLoader(
+                    message: 'Generating PDF.please wait...',
+                  ),
+                  visible: _pdfLoading,
                 ),
               ],
             );

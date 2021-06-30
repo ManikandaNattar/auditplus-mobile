@@ -66,15 +66,12 @@ class _RackFormScreenState extends State<RackFormScreen> {
               _screenContext, 'Rack updated Successfully');
         }
         if (arguments == null || arguments['routeForm'] == null) {
-          Future.delayed(Duration(seconds: 1)).then((value) =>
-              Navigator.of(_screenContext)
-                  .pushReplacementNamed('/inventory/manage/rack'));
+          Navigator.of(_screenContext)
+              .pushReplacementNamed('/inventory/manage/rack');
         } else {
           arguments['routeFormArguments'] = responseData;
-          Future.delayed(Duration(seconds: 1)).then(
-            (value) => Navigator.of(_screenContext).pop(
-              arguments,
-            ),
+          Navigator.of(_screenContext).pop(
+            arguments,
           );
         }
       } catch (error) {

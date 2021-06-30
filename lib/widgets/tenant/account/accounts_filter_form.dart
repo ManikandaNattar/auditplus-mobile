@@ -160,7 +160,7 @@ class _AccountsFilterFormState extends State<AccountsFilterForm> {
                         );
                       },
                       validator: null,
-                      labelText: 'Type',
+                      labelText: 'Account Type',
                       suggestionFormatter: (suggestion) => suggestion['name'],
                       textFormatter: (selection) => selection['name'],
                       onSaved: (val) {

@@ -11,29 +11,9 @@ class SaleSummary extends StatefulWidget {
 }
 
 class _SaleSummaryState extends State<SaleSummary> {
-  List<Map<String, dynamic>> _summary = [];
+  List _summary = [];
   bool _isLoading = false;
   DashboardProvider _dashboardProvider;
-
-  Future<void> _loadSummary() async {
-    setState(() {
-      _isLoading = true;
-    });
-    try {
-      List<Map<String, dynamic>> saleSummary = await _dashboardProvider
-          .loadSaleSummary(DateTime.now(), DateTime.now());
-      setState(() {
-        _summary = saleSummary;
-        _isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        _summary = [];
-        _isLoading = false;
-      });
-      utils.handleErrorResponse(context, error.message, 'tenant');
-    }
-  }
 
   @override
   void initState() {
@@ -48,11 +28,31 @@ class _SaleSummaryState extends State<SaleSummary> {
     _loadSummary();
   }
 
+  Future<void> _loadSummary() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      Map<String, dynamic> saleSummary = await _dashboardProvider
+          .loadSaleSummary(DateTime.now(), DateTime.now());
+      setState(() {
+        _summary = saleSummary['records'];
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _summary = [];
+        _isLoading = false;
+      });
+      utils.handleErrorResponse(context, error.message, 'tenant');
+    }
+  }
+
   double _getTotal() {
     double total = 0.0;
     if (_summary.isNotEmpty) {
       for (int i = 0; i <= _summary.length - 1; i++) {
-        total += _summary[i]['amount'];
+        total += _summary[i]['total'];
       }
     }
     return total;
@@ -124,7 +124,7 @@ class _SaleSummaryState extends State<SaleSummary> {
                                               .subtitle1,
                                         ),
                                         Text(
-                                          '\u{20B9}${elm['amount'].toStringAsFixed(2)}',
+                                          '\u{20B9}${elm['total'].toStringAsFixed(2)}',
                                           style: Theme.of(context)
                                               .textTheme
                                               .headline1,
@@ -149,8 +149,12 @@ class _SaleSummaryState extends State<SaleSummary> {
                                 children: [
                                   Text(
                                     'TOTAL',
-                                    style:
-                                        Theme.of(context).textTheme.headline1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline1
+                                        .copyWith(
+                                          fontSize: 14.0,
+                                        ),
                                   ),
                                   Text(
                                     '\u{20B9}${_getTotal().toStringAsFixed(2)}',

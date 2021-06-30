@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:auditplusmobile/providers/contacts/vendor_provider.dart';
+import 'package:auditplusmobile/providers/inventory/vendor_provider.dart';
 import 'package:auditplusmobile/providers/inventory/inventory_item_provider.dart';
 import 'package:auditplusmobile/widgets/shared/autocomplete_form_field.dart';
 import 'package:flutter/cupertino.dart';
@@ -107,6 +107,7 @@ class _InventoryItemDealersScreenState
       setState(() {
         _isLoading = true;
         _dealersList.clear();
+        vendorId = '';
       });
       _getDealersList();
     } on HttpException catch (error) {
@@ -235,8 +236,8 @@ class _InventoryItemDealersScreenState
       ),
       isScrollControlled: true,
       builder: (_) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.89,
+        return FractionallySizedBox(
+          heightFactor: 0.8,
           child: _showVendorAutocompleteForm(),
         );
       },
@@ -326,7 +327,7 @@ class _InventoryItemDealersScreenState
                     color: Theme.of(context).primaryColor,
                   ),
                   onPressed: () => Navigator.of(context).pushNamed(
-                    '/contacts/manage/vendor/form',
+                    '/inventory/purchase/vendor/form',
                     arguments: {
                       'routeForm': 'InventoryDealersToVendor',
                       'id': inventoryId,
@@ -347,7 +348,7 @@ class _InventoryItemDealersScreenState
                 ),
                 visible: utils.checkMenuWiseAccess(
                   context,
-                  ['contacts.vendor.create'],
+                  ['inv.vend.cr'],
                 ),
               ),
             ),

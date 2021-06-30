@@ -2,9 +2,9 @@ import 'package:auditplusmobile/providers/auth/tenant_auth_provider.dart';
 import 'package:auditplusmobile/providers/reports/inventory_reports_provider.dart';
 import 'package:auditplusmobile/widgets/shared/app_bar_branch_selection.dart';
 import 'package:auditplusmobile/widgets/shared/progress_loader.dart';
+import 'package:auditplusmobile/widgets/shared/report/report_book_header.dart';
 import 'package:auditplusmobile/widgets/shared/show_data_empty_image.dart';
 import 'package:auditplusmobile/widgets/tenant/reports/inventory/inventory_book/inventory_book.dart';
-import 'package:auditplusmobile/widgets/tenant/reports/inventory/inventory_book/inventory_book_header.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -24,18 +24,14 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
   TenantAuth _tenantAuth;
   List<Map<String, dynamic>> _inventoryBookList = [];
   int _pageNo = 1;
-  int _maxPage = 0;
-  var _totalInward = 0;
-  var _totalOutward = 0;
-  var _opening = 0;
-  var _closing = 0;
-  var inputFromDate;
-  var outputFromDate;
-  var inputToDate;
-  var outputToDate;
+  var _totalInward = 0.0;
+  var _totalOutward = 0.0;
+  var _opening = 0.0;
+  var _closing = 0.0;
   bool _isLoading = true;
   bool _pdfLoading = false;
   Map _userSelectedBranch = {};
+  bool _hasMorePages = false;
   Map _formData = {
     'inventory': '',
     'fromDate': '',
@@ -47,7 +43,7 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
   void _routeToForm() {
     Navigator.of(context)
         .pushNamed(
-      '/reports/inventory/inventory-book-form',
+      '/reports/inventory/inventory-book/form',
       arguments: _formData,
     )
         .then((result) {
@@ -80,7 +76,7 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
   }
 
   void onScrollEnd() {
-    if (_maxPage > _pageNo) {
+    if (_hasMorePages == true) {
       setState(() {
         _pageNo += 1;
         _getInventoryBookList();
@@ -98,23 +94,28 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
 
   Future<List<Map<String, dynamic>>> _getInventoryBookList() async {
     try {
-      inputFromDate = constants.defaultDate.parse(_formData['fromDate']);
-      outputFromDate = constants.isoDateFormat.format(inputFromDate);
-      inputToDate = constants.defaultDate.parse(_formData['toDate']);
-      outputToDate = constants.isoDateFormat.format(inputToDate);
-      Map response = await _inventoryReportsProvider.getInventoryBook(
-        outputFromDate,
-        outputToDate,
+      Map<String, dynamic> response =
+          await _inventoryReportsProvider.getInventoryBook(
+        constants.isoDateFormat.format(
+          constants.defaultDate.parse(
+            _formData['fromDate'],
+          ),
+        ),
+        constants.isoDateFormat.format(
+          constants.defaultDate.parse(
+            _formData['toDate'],
+          ),
+        ),
         _formData['inventory']['id'],
         _formData['branch'],
         _pageNo,
       );
-      _maxPage = response['pageContext']['maxPage'];
-      _totalInward = response['inward'];
-      _totalOutward = response['outward'];
-      _opening = response['opening'];
-      _closing = response['closing'];
+      _totalInward = response['balance']['inward'];
+      _totalOutward = response['balance']['outward'];
+      _opening = response['balance']['opening'];
+      _closing = response['balance']['closing'];
       List data = response['records'];
+      _hasMorePages = utils.checkHasMorePages(response['pageContext'], _pageNo);
       setState(() {
         _isLoading = false;
         addInventoryBook(data);
@@ -135,9 +136,9 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
         (elm) {
           return {
             'date': constants.defaultDate.format(DateTime.parse(elm['date'])),
-            'particulars': elm['particulars'],
-            'voucherType': elm['voucherType'],
-            'refNo': elm['refNo'],
+            'particulars': elm['particulars'].toString().replaceAll('null', ''),
+            'voucherType': elm['voucherName'],
+            'refNo': elm['refNo'].toString().replaceAll('null', ''),
             'inward': elm['inward'],
             'outward': elm['outward'],
           };
@@ -150,8 +151,16 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
     try {
       final response =
           await _inventoryReportsProvider.getInventoryBookPrintData(
-        outputFromDate,
-        outputToDate,
+        constants.isoDateFormat.format(
+          constants.defaultDate.parse(
+            _formData['fromDate'],
+          ),
+        ),
+        constants.isoDateFormat.format(
+          constants.defaultDate.parse(
+            _formData['toDate'],
+          ),
+        ),
         _formData['inventory']['id'],
         _formData['branch'],
         _userSelectedBranch['id'],
@@ -225,7 +234,8 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
                 Container(
                   child: Column(
                     children: [
-                      InventoryBookHeader(
+                      ReportBookHeader(
+                        reportName: 'inventory',
                         formData: _formData,
                       ),
                       _hasFormData() == false
@@ -243,7 +253,8 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
                                   'opening': _opening,
                                   'closing': _closing,
                                   'isLoading': _isLoading,
-                                  'maxPage': _maxPage,
+                                  'hasMorePages': _hasMorePages,
+                                  'reportName': 'Inventory',
                                 },
                                 list: _inventoryBookList,
                                 onScrollEnd: () => onScrollEnd(),
@@ -252,9 +263,11 @@ class _InventoryBookScreenState extends State<InventoryBookScreen> {
                     ],
                   ),
                 ),
-                ProgressLoader(
-                  pdfLoading: _pdfLoading,
-                  message: 'Generating PDF.please wait...',
+                Visibility(
+                  child: ProgressLoader(
+                    message: 'Generating PDF.please wait...',
+                  ),
+                  visible: _pdfLoading,
                 ),
               ],
             );

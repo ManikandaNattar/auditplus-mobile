@@ -51,7 +51,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
       Map<String, dynamic> searchQuery = utils.buildSearchQuery({
         {'name': _formData['nameFilterKey']}: _formData['name'],
         {'aliasName': _formData['aliasNameFilterKey']}: _formData['aliasName'],
-        {'type': 'eq'}: _formData['type'],
+        {'accountType': 'eq'}: _formData['type'],
         {'parentAccount': 'eq'}: _formData['parentAccount'],
       });
       Map response = await _accountProvider.getAccountList(
@@ -61,8 +61,8 @@ class _AccountListScreenState extends State<AccountListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addAccount(data);
@@ -85,7 +85,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
             'id': elm['id'],
             'displayName': elm['displayName'],
             'title': elm['name'],
-            'subtitle': elm['type']['name'],
+            'subtitle': elm['accountType'],
           };
         },
       ).toList(),
@@ -182,7 +182,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'accounting.account.create',
+              'ac.ac.cr',
             ],
           ),
         ),

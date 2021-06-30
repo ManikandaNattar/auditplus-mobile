@@ -61,8 +61,8 @@ class _BranchListScreenState extends State<BranchListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addBranch(data);
@@ -83,13 +83,8 @@ class _BranchListScreenState extends State<BranchListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
-            'subtitle': elm['contactInfo'] == null
-                ? ''
-                : elm['contactInfo']['mobile'] == null
-                    ? ''
-                    : elm['contactInfo']['mobile'],
+            'subtitle': elm['mobile'] == null ? '' : elm['mobile'],
           };
         },
       ).toList(),

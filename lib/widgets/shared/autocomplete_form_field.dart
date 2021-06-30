@@ -15,6 +15,8 @@ class AutocompleteFormField extends StatefulWidget {
   final Widget suffixIconWidget;
   final bool autoFocus;
   final TextStyle labelStyle;
+  final bool outlineInputBorder;
+  final bool floatingLabelBehaviour;
 
   AutocompleteFormField({
     @required this.labelText,
@@ -30,6 +32,8 @@ class AutocompleteFormField extends StatefulWidget {
     this.suffixIconWidget,
     this.autoFocus,
     this.labelStyle,
+    this.outlineInputBorder,
+    this.floatingLabelBehaviour,
   });
 
   @override
@@ -44,6 +48,7 @@ class _AutocompleteFormFieldState extends State<AutocompleteFormField> {
     if (widget.initialValue != null) {
       _selection = widget.initialValue;
     }
+
     return TypeAheadFormField(
       textFieldConfiguration: TextFieldConfiguration(
         focusNode: widget.focusNode,
@@ -51,8 +56,12 @@ class _AutocompleteFormFieldState extends State<AutocompleteFormField> {
         decoration: InputDecoration(
           labelText: widget.labelText,
           labelStyle: widget.labelStyle == null ? null : widget.labelStyle,
-          border: OutlineInputBorder(),
+          border:
+              widget.outlineInputBorder == null ? OutlineInputBorder() : null,
           suffixIcon: widget.suffixIconWidget,
+          floatingLabelBehavior: widget.floatingLabelBehaviour == null
+              ? FloatingLabelBehavior.auto
+              : FloatingLabelBehavior.always,
         ),
         controller: widget.controller,
       ),

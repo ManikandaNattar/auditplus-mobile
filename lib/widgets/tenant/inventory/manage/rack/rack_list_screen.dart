@@ -57,8 +57,8 @@ class _RackListScreenState extends State<RackListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addRack(data);
@@ -79,7 +79,6 @@ class _RackListScreenState extends State<RackListScreen> {
         (elm) {
           return {
             'id': elm['id'],
-            'displayName': elm['displayName'],
             'title': elm['name'],
             'subtitle': '',
           };
@@ -174,7 +173,7 @@ class _RackListScreenState extends State<RackListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'inventory.rack.create',
+              'inv.rck.cr',
             ],
           ),
         ),

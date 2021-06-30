@@ -57,8 +57,8 @@ class _CostCategoryListScreenState extends State<CostCategoryListScreen> {
         '',
         '',
       );
-      hasMorePages = response['hasMorePages'];
-      List data = response['results'];
+      List data = response['records'];
+      hasMorePages = utils.checkHasMorePages(response['pageContext'], pageNo);
       setState(() {
         _isLoading = false;
         addCostCategory(data);
@@ -174,7 +174,7 @@ class _CostCategoryListScreenState extends State<CostCategoryListScreen> {
           visible: utils.checkMenuWiseAccess(
             context,
             [
-              'accounting.costCategory.create',
+              'ac.ccat.cr',
             ],
           ),
         ),
