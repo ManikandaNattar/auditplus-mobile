@@ -25,7 +25,7 @@ String encodeUrl({
   Map<String, String> query,
 }) {
   if (kDebugMode) {
-    _domain = 'http://192.168.1.147:4001/api/v1';
+    _domain = 'http://192.168.1.130:4001/api/v1';
   } else {
     _domain = '${Organization(organization).domain}/api/v1';
   }
@@ -37,6 +37,7 @@ String encodeUrl({
       }
     });
   }
+  print(url);
   return url;
 }
 
@@ -66,8 +67,8 @@ String encodeApiUrl({
 }) {
   if (kDebugMode) {
     apiName == 'report'
-        ? _domain = 'http://192.168.1.147:8030/$apiName/api'
-        : _domain = 'http://192.168.1.147:8050/$apiName/api';
+        ? _domain = 'http://192.168.1.130:8030/$apiName/api'
+        : _domain = 'http://192.168.1.130:8050/$apiName/api';
   } else {
     _domain = '${Organization(organization).domain}/$apiName/api';
   }
@@ -79,6 +80,7 @@ String encodeApiUrl({
       }
     });
   }
+  print(url);
   return url;
 }
 
@@ -90,7 +92,7 @@ String encodeQSearchListApiUrl({
 }) {
   String queryString = '';
   if (kDebugMode) {
-    _domain = 'http://192.168.1.147:8050/qsearch/api/list/';
+    _domain = 'http://192.168.1.130:8050/qsearch/api/list/';
   } else {
     _domain = '${Organization(organization).domain}/qsearch/api/list/';
   }
@@ -117,6 +119,7 @@ String encodeQSearchListApiUrl({
       }
     });
   }
+  print(url);
   return url;
 }
 

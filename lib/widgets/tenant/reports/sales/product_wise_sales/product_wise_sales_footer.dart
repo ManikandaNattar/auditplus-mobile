@@ -14,26 +14,60 @@ class ProductWiseSalesFooter extends StatelessWidget {
         ),
       ),
       width: double.infinity,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Table(
         children: [
-          Visibility(
-            child: Expanded(
-              child: Column(
+          TableRow(
+            children: [
+              Visibility(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    Text(
+                      'Asset',
+                    ),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Text(
+                      double.parse(formData['assetValue'].abs().toString())
+                          .toStringAsFixed(2),
+                      style: formData['assetValue'] < 0
+                          ? TextStyle(
+                              color: Colors.red,
+                            )
+                          : TextStyle(
+                              color: Colors.green,
+                            ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                  ],
+                ),
+                visible: utils.checkMenuWiseAccess(
+                  context,
+                  [
+                    'rpt.inv.pdtwspft',
+                  ],
+                ),
+              ),
+              Column(
                 children: [
                   SizedBox(
                     height: 10.0,
                   ),
                   Text(
-                    'Total Asset Value',
+                    'Sold',
                   ),
                   SizedBox(
                     height: 5.0,
                   ),
                   Text(
-                    double.parse(formData['assetValue'].abs().toString())
-                        .toStringAsFixed(2),
-                    style: formData['assetValue'] < 0
+                    formData['sold'].abs().toString(),
+                    style: formData['sold'] < 0
                         ? TextStyle(
                             color: Colors.red,
                           )
@@ -47,90 +81,21 @@ class ProductWiseSalesFooter extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            visible: utils.checkMenuWiseAccess(
-              context,
-              [
-                'rpt.inv.pdtwspft',
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 10.0,
-                ),
-                Text(
-                  'Total Sold',
-                ),
-                SizedBox(
-                  height: 5.0,
-                ),
-                Text(
-                  formData['sold'].abs().toString(),
-                  style: formData['sold'] < 0
-                      ? TextStyle(
-                          color: Colors.red,
-                        )
-                      : TextStyle(
-                          color: Colors.green,
-                        ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10.0,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 10.0,
-                ),
-                Text(
-                  'Total Sale Value',
-                ),
-                SizedBox(
-                  height: 5.0,
-                ),
-                Text(
-                  double.parse(formData['saleValue'].abs().toString())
-                      .toStringAsFixed(2),
-                  style: formData['saleValue'] < 0
-                      ? TextStyle(
-                          color: Colors.red,
-                        )
-                      : TextStyle(
-                          color: Colors.green,
-                        ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: 10.0,
-                ),
-              ],
-            ),
-          ),
-          Visibility(
-            child: Expanded(
-              child: Column(
+              Column(
                 children: [
                   SizedBox(
                     height: 10.0,
                   ),
                   Text(
-                    'Total Profit',
+                    'Sale',
                   ),
                   SizedBox(
                     height: 5.0,
                   ),
                   Text(
-                    double.parse(formData['profitValue'].abs().toString())
+                    double.parse(formData['saleValue'].abs().toString())
                         .toStringAsFixed(2),
-                    style: formData['profitValue'] < 0
+                    style: formData['saleValue'] < 0
                         ? TextStyle(
                             color: Colors.red,
                           )
@@ -144,13 +109,43 @@ class ProductWiseSalesFooter extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            visible: utils.checkMenuWiseAccess(
-              context,
-              [
-                'rpt.inv.pdtwspft',
-              ],
-            ),
+              Visibility(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                    Text(
+                      'Profit',
+                    ),
+                    SizedBox(
+                      height: 5.0,
+                    ),
+                    Text(
+                      double.parse(formData['profitValue'].abs().toString())
+                          .toStringAsFixed(2),
+                      style: formData['profitValue'] < 0
+                          ? TextStyle(
+                              color: Colors.red,
+                            )
+                          : TextStyle(
+                              color: Colors.green,
+                            ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                      height: 10.0,
+                    ),
+                  ],
+                ),
+                visible: utils.checkMenuWiseAccess(
+                  context,
+                  [
+                    'rpt.inv.pdtwspft',
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

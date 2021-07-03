@@ -8,6 +8,7 @@ import 'package:auditplusmobile/providers/inventory/sale_incharge_provider.dart'
 // import 'package:auditplusmobile/providers/tax/tax_provider.dart';
 import 'package:auditplusmobile/widgets/shared/app_bar_branch_selection.dart';
 import 'package:auditplusmobile/widgets/shared/autocomplete_form_field.dart';
+import 'package:auditplusmobile/widgets/tenant/inventory/sale/sale/sale_form/sale_item_detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -64,29 +65,11 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         {'id': 0},
       ];
     }
+    _dateController.text = _dateController.text.isEmpty
+        ? constants.defaultDate.format(DateTime.now())
+        : _dateController.text;
     super.didChangeDependencies();
   }
-
-  // Future<List> _getTaxList(String query) async {
-  //   _filterTaxList.clear();
-  //   if (_taxList.isEmpty) {
-  //     _taxList = await _taxProvider.taxAutoComplete();
-  //   }
-  //   if (query.toString().isNotEmpty) {
-  //     for (int i = 0; i <= _taxList.length - 1; i++) {
-  //       String name = _taxList[i]['displayName'];
-  //       if (name
-  //           .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
-  //           .toLowerCase()
-  //           .startsWith(query.toLowerCase())) {
-  //         _filterTaxList.add(_taxList[i]);
-  //       }
-  //     }
-  //   } else {
-  //     _filterTaxList = _taxList;
-  //   }
-  //   return _filterTaxList;
-  // }
 
   Widget _otherInfoForm() {
     return SingleChildScrollView(
@@ -161,27 +144,6 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
                       onSaved: (val) {
                         if (val.isNotEmpty) {}
                       },
-                    ),
-                    SizedBox(
-                      height: 15.0,
-                    ),
-                    AutocompleteFormField(
-                      controller: _warehosueController,
-                      autoFocus: false,
-                      autocompleteCallback: (pattern) {
-                        return _warehouseProvider.warehouseAutoComplete(
-                            searchText: pattern);
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Warehouse should not be empty!';
-                        }
-                        return null;
-                      },
-                      labelText: 'Warehouse',
-                      suggestionFormatter: (suggestion) => suggestion['name'],
-                      textFormatter: (selection) => selection['name'],
-                      onSaved: (val) {},
                     ),
                     SizedBox(
                       height: 15.0,
@@ -351,33 +313,47 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Date',
-                    style: Theme.of(context).textTheme.subtitle2,
+              SizedBox(
+                width: 150.0,
+                child: TextFormField(
+                  readOnly: true,
+                  controller: _dateController,
+                  decoration: InputDecoration(
+                    labelText: 'Date',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    suffixIcon: Icon(
+                      Icons.date_range,
+                      color: Colors.blue,
+                    ),
                   ),
-                  SizedBox(
-                    height: 5.0,
-                  ),
-                  Text(
-                    _dateController.text.isEmpty
-                        ? constants.defaultDate.format(DateTime.now())
-                        : _dateController.text,
-                    style: Theme.of(context).textTheme.subtitle1,
-                  ),
-                ],
-              ),
-              IconButton(
-                padding: EdgeInsets.all(0.0),
-                icon: Icon(
-                  Icons.date_range,
-                  color: Theme.of(context).primaryColor,
+                  onTap: () => _showDatePicker(),
                 ),
-                onPressed: () => _showDatePicker(),
-              )
+              ),
+              SizedBox(
+                width: 150.0,
+                child: AutocompleteFormField(
+                  outlineInputBorder: false,
+                  floatingLabelBehaviour: true,
+                  controller: _warehosueController,
+                  autoFocus: false,
+                  autocompleteCallback: (pattern) {
+                    return _warehouseProvider.warehouseAutoComplete(
+                        searchText: pattern);
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'Warehouse should not be empty!';
+                    }
+                    return null;
+                  },
+                  labelText: 'Warehouse',
+                  suggestionFormatter: (suggestion) => suggestion['name'],
+                  textFormatter: (selection) => selection['name'],
+                  onSaved: (val) {},
+                ),
+              ),
             ],
           ),
           TextButton.icon(
@@ -413,7 +389,12 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       builder: (_) {
         return FractionallySizedBox(
           heightFactor: 0.8,
-          child: _otherInfoForm(),
+          child: Padding(
+            padding: MediaQuery.of(context).viewInsets,
+            child: SingleChildScrollView(
+              child: _otherInfoForm(),
+            ),
+          ),
         );
       },
     );
@@ -486,10 +467,27 @@ class _SaleFormScreenState extends State<SaleFormScreen> {
       body: SingleChildScrollView(
         child: Container(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _saleFormHeaderWidget(),
               Divider(
                 thickness: 1.0,
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 0.0,
+                ),
+                child: Text(
+                  'SALE ITEMS INFO',
+                  style: Theme.of(context).textTheme.headline1,
+                ),
+              ),
+              Divider(
+                thickness: 1.0,
+              ),
+              SaleItemDetail(
+                {},
               ),
             ],
           ),

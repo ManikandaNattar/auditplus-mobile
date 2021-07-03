@@ -17,6 +17,7 @@ class AutocompleteFormField extends StatefulWidget {
   final TextStyle labelStyle;
   final bool outlineInputBorder;
   final bool floatingLabelBehaviour;
+  final bool isDense;
 
   AutocompleteFormField({
     @required this.labelText,
@@ -34,6 +35,7 @@ class AutocompleteFormField extends StatefulWidget {
     this.labelStyle,
     this.outlineInputBorder,
     this.floatingLabelBehaviour,
+    this.isDense,
   });
 
   @override
@@ -54,6 +56,7 @@ class _AutocompleteFormFieldState extends State<AutocompleteFormField> {
         focusNode: widget.focusNode,
         autofocus: widget.autoFocus == null ? true : false,
         decoration: InputDecoration(
+          isDense: widget.isDense == null ? false : true,
           labelText: widget.labelText,
           labelStyle: widget.labelStyle == null ? null : widget.labelStyle,
           border:

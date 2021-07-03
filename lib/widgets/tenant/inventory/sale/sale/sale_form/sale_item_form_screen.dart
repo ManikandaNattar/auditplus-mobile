@@ -1,11 +1,13 @@
 import 'package:auditplusmobile/providers/auth/tenant_auth_provider.dart';
 import 'package:auditplusmobile/providers/inventory/inventory_item_provider.dart';
 import 'package:auditplusmobile/providers/inventory/unit_provider.dart';
+import 'package:auditplusmobile/providers/qsearch_provider.dart';
 import 'package:auditplusmobile/providers/tax/tax_provider.dart';
 import 'package:auditplusmobile/widgets/shared/autocomplete_form_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import './../../../../../../constants.dart' as constants;
 
 class SaleItemFormScreen extends StatefulWidget {
   @override
@@ -19,13 +21,25 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
   UnitProvider _unitProvider;
   TaxProvider _taxProvider;
   TextEditingController _unitTextEditingController = TextEditingController();
-  TextEditingController _taxController = TextEditingController();
   TenantAuth _tenantAuth;
   Map _selectedBranch = {};
+  Map _selectedInventory = {};
   List _selectedBatches = [];
   List _taxList = [];
-  List _filterTaxList = [];
   Map _selectedTax = {};
+  QSearchProvider _qSearchProvider;
+  List _inventoryBatches = [];
+  bool _isLoading = false;
+  bool _allowNegativeStock = false;
+  List _unitList = [];
+  Map _inventoryTax = {};
+  double disc = 0.0;
+  double discAmount = 0.0;
+  List _unitConversionList = [];
+  Map<String, dynamic> _inventoryInfo = {};
+  Map<String, dynamic> _preferenceData = {};
+  Map _selectedUnit = {};
+  List _filterUnitList = [];
 
   @override
   void didChangeDependencies() {
@@ -34,37 +48,64 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
     _tenantAuth = Provider.of<TenantAuth>(context);
     _taxProvider = Provider.of<TaxProvider>(context);
     _selectedBranch = _tenantAuth.selectedBranch;
+    _qSearchProvider = Provider.of<QSearchProvider>(context);
+    _getTaxList();
     super.didChangeDependencies();
   }
 
-  // Future<List> _getTaxList() async {
-  //   if (_taxList.isEmpty) {
-  //     _taxList = await _taxProvider.taxAutoComplete();
-  //     _filterTaxList = JsonDecoder().convert(json.encode(_taxList));
-  //   }
-  //   print(_filterTaxList);
-  //   return _taxList;
-  // }
+  Future<void> _getInventoryInfo() async {
+    final response = await _qSearchProvider.getInventoryInfo(
+      _selectedInventory['id'],
+      _selectedBranch['id'],
+    );
+    setState(() {
+      _inventoryInfo = response;
+      _isLoading = false;
+      _inventoryBatches = _inventoryInfo['batches'];
+    });
+  }
 
-  Future<List> _getTaxList(String query) async {
-    _filterTaxList.clear();
+  Future<List> _getTaxList() async {
     if (_taxList.isEmpty) {
-      _taxList = await _taxProvider.taxAutoComplete();
+      final data = await _taxProvider.taxAutoComplete();
+      setState(() {
+        _taxList = data;
+      });
+    }
+    return _taxList;
+  }
+
+  Future<List> _getUnitList(String query) async {
+    print(1);
+    _filterUnitList = [];
+    if (_unitList.isEmpty) {
+      print(2);
+      List _unitData = await _unitProvider.unitAutoComplete(searchText: '');
+      _unitConversionList = _inventoryInfo['units'];
+      if (_unitConversionList != null && _unitConversionList.isNotEmpty) {
+        for (int i = 0; i <= _unitConversionList.length - 1; i++) {
+          _unitList.addAll(
+            _unitData.where(
+              (element) => element['id'] == _unitConversionList[i]['unit'],
+            ),
+          );
+        }
+      }
     }
     if (query.toString().isNotEmpty) {
-      for (int i = 0; i <= _taxList.length - 1; i++) {
-        String name = _taxList[i]['displayName'];
+      for (int i = 0; i <= _unitList.length - 1; i++) {
+        String name = _unitList[i]['name'];
         if (name
             .replaceAll(RegExp('[^a-zA-Z0-9\\\\s+]'), '')
             .toLowerCase()
             .startsWith(query.toLowerCase())) {
-          _filterTaxList.add(_taxList[i]);
+          _filterUnitList.add(_unitList[i]);
         }
       }
     } else {
-      _filterTaxList = _taxList;
+      _filterUnitList = _unitList;
     }
-    return _filterTaxList;
+    return _filterUnitList;
   }
 
   Widget _itemInfo() {
@@ -100,6 +141,8 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
               child: Column(
                 children: [
                   AutocompleteFormField(
+                    outlineInputBorder: false,
+                    floatingLabelBehaviour: true,
                     controller: _inventoryController,
                     autoFocus: false,
                     autocompleteCallback: (pattern) {
@@ -124,125 +167,25 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
                     textFormatter: (selection) => selection['name'],
                     onSaved: (val) {},
                     onSelected: (val) {
-                      if (val != null) {
-                        Navigator.of(context).pushNamed(
-                          '/inventory/sale/item/batches/detail',
-                          arguments: {
-                            'inventoryId': val['id'],
-                            'inventoryName': val['name'],
-                            'branch': _selectedBranch,
-                          },
-                        ).then((value) {
-                          if (value != null) {
-                            setState(() {
-                              _selectedBatches = value;
-                            });
-                          }
-                        });
-                      }
+                      setState(() {
+                        _isLoading = true;
+                        _selectedInventory = val;
+                      });
+                      _getInventoryInfo();
                     },
                   ),
                   SizedBox(
-                    height: 15.0,
+                    height: 5.0,
                   ),
                   Visibility(
-                    child: _batchDetail(),
-                    visible: _selectedBatches.isNotEmpty,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _qtyRateInfo() {
-    return Container(
-      width: double.infinity,
-      child: Card(
-        elevation: 10.0,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 10.0,
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 0.0,
-              ),
-              child: Text(
-                'RATE INFO',
-                style: Theme.of(context).textTheme.headline1,
-              ),
-            ),
-            SizedBox(
-              height: 10.0,
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 0.0,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Quantity',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                          style: Theme.of(context).textTheme.subtitle1,
-                          onSaved: (val) {},
-                        ),
-                      ),
-                      SizedBox(
-                        width: 5.0,
-                      ),
-                      Expanded(
-                        child: AutocompleteFormField(
-                          controller: _unitTextEditingController,
-                          autoFocus: false,
-                          autocompleteCallback: (pattern) {
-                            return _unitProvider.unitAutoComplete(
-                              searchText: pattern,
-                            );
-                          },
-                          validator: null,
-                          labelText: 'Unit',
-                          suggestionFormatter: (suggestion) =>
-                              suggestion['name'],
-                          textFormatter: (selection) => selection['name'],
-                          onSaved: (val) {},
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 15.0,
-                  ),
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'Rate (Price / Unit)',
-                      border: OutlineInputBorder(),
-                      suffixText: 'Tax Incl',
-                    ),
-                    keyboardType: TextInputType.number,
-                    style: Theme.of(context).textTheme.subtitle1,
-                    onSaved: (val) {},
+                    child: _totalInfo(),
+                    visible: _selectedInventory.isNotEmpty,
                   ),
                 ],
               ),
             ),
             SizedBox(
-              height: 20.0,
+              height: 15.0,
             ),
           ],
         ),
@@ -252,6 +195,174 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
 
   Widget _totalInfo() {
     return Container(
+      child: Column(
+        children: [
+          Table(
+            children: [
+              TableRow(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: Text(
+                      'Discount',
+                      style: Theme.of(context).textTheme.bodyText2,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 300.0,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              isDense: true,
+                            ),
+                            keyboardType: TextInputType.number,
+                            style: Theme.of(context).textTheme.bodyText1,
+                            onSaved: (val) {},
+                          ),
+                        ),
+                        Text(
+                          '%',
+                          textAlign: TextAlign.start,
+                        ),
+                        SizedBox(
+                          width: 10.0,
+                        ),
+                        Text(
+                          '\u{20B9}',
+                          textAlign: TextAlign.start,
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              isDense: true,
+                            ),
+                            keyboardType: TextInputType.number,
+                            style: Theme.of(context).textTheme.bodyText1,
+                            onSaved: (val) {},
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10.0,
+          ),
+          Table(
+            children: [
+              TableRow(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: Text(
+                      'Tax %',
+                      style: Theme.of(context).textTheme.bodyText2,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 300,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField(
+                            decoration: InputDecoration(
+                              isDense: true,
+                            ),
+                            style: Theme.of(context).textTheme.subtitle1,
+                            value: _selectedTax['displayName'],
+                            items: _taxList.map(
+                              (value) {
+                                return DropdownMenuItem(
+                                  value: value['displayName'],
+                                  child: Text(
+                                    value['displayName'],
+                                    style: TextStyle(
+                                      color: _selectedTax['displayName'] ==
+                                              value['displayName']
+                                          ? Colors.blue
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedTax.addAll(
+                                  _taxList
+                                      .where((element) =>
+                                          element['displayName'] == val)
+                                      .single,
+                                );
+                              });
+                            },
+                            onSaved: (newValue) {},
+                          ),
+                        ),
+                        // SizedBox(
+                        //   width: 10.0,
+                        // ),
+                        // Text(
+                        //   '\u{20B9}',
+                        //   textAlign: TextAlign.start,
+                        // ),
+                        // Expanded(
+                        //   child: TextFormField(
+                        //     decoration: InputDecoration(
+                        //       isDense: true,
+                        //     ),
+                        //     keyboardType: TextInputType.number,
+                        //     style: Theme.of(context)
+                        //         .textTheme
+                        //         .bodyText1,
+                        //     onSaved: (val) {},
+                        //   ),
+                        // ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 10.0,
+          ),
+          Table(
+            children: [
+              TableRow(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 20.0),
+                    child: Text(
+                      'Total Amount',
+                      style: Theme.of(context).textTheme.bodyText1,
+                    ),
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      isDense: true,
+                    ),
+                    keyboardType: TextInputType.number,
+                    style: Theme.of(context).textTheme.bodyText1,
+                    onSaved: (val) {},
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _batchInfo() {
+    return Container(
       width: double.infinity,
       child: Card(
         elevation: 10.0,
@@ -268,272 +379,203 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
                 vertical: 0.0,
               ),
               child: Text(
-                'TOTAL INFO',
+                'BATCH INFO',
                 style: Theme.of(context).textTheme.headline1,
               ),
             ),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 0.0,
-              ),
-              child: Column(
-                children: [
-                  Table(
-                    children: [
-                      TableRow(
+            SizedBox(
+              height: 10.0,
+            ),
+            ..._inventoryBatches.map(
+              (e) {
+                return Column(
+                  children: [
+                    Container(
+                      color: Colors.grey[100],
+                      padding: EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(top: 20.0),
-                            child: RichText(
-                              text: TextSpan(
-                                text: 'Subtotal',
-                                style: Theme.of(context).textTheme.bodyText2,
-                                children: [
-                                  TextSpan(
-                                    text: ' (Rate X Qty)',
-                                    style:
-                                        Theme.of(context).textTheme.subtitle2,
-                                  ),
-                                ],
-                              ),
+                            padding: const EdgeInsets.only(
+                              left: 10.0,
                             ),
-                          ),
-                          SizedBox(
-                            width: 200.0,
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                isDense: true,
-                              ),
-                              keyboardType: TextInputType.number,
-                              style: Theme.of(context).textTheme.bodyText1,
-                              onSaved: (val) {},
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Table(
-                    children: [
-                      TableRow(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 20.0),
-                            child: Text(
-                              'Discount',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 200.0,
-                            child: Row(
+                            child: Table(
                               children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      suffixIcon: Text('%'),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: TextFormField(
+                                          initialValue: e['sRate'].toString(),
+                                          decoration: InputDecoration(
+                                            labelText: 'Rate(Tax incl)',
+                                            floatingLabelBehavior:
+                                                FloatingLabelBehavior.always,
+                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText2,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
                                     ),
-                                    keyboardType: TextInputType.number,
-                                    style:
-                                        Theme.of(context).textTheme.bodyText1,
-                                    onSaved: (val) {},
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 5.0,
-                                ),
-                                Expanded(
-                                  child: TextFormField(
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      prefixIcon: Text('\u{20B9}'),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: TextFormField(
+                                          decoration: InputDecoration(
+                                            labelText: 'Qty',
+                                            floatingLabelBehavior:
+                                                FloatingLabelBehavior.always,
+                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText2,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
                                     ),
-                                    keyboardType: TextInputType.number,
-                                    style:
-                                        Theme.of(context).textTheme.bodyText1,
-                                    onSaved: (val) {},
-                                  ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 5),
+                                      child: AutocompleteFormField(
+                                        isDense: true,
+                                        autoFocus: false,
+                                        focusNode: null,
+                                        outlineInputBorder: false,
+                                        floatingLabelBehaviour: true,
+                                        controller: _unitTextEditingController,
+                                        autocompleteCallback: (pattern) {
+                                          return _getUnitList(pattern);
+                                        },
+                                        validator: null,
+                                        labelText: 'Unit',
+                                        suggestionFormatter: (suggestion) =>
+                                            suggestion['name'],
+                                        textFormatter: (selection) =>
+                                            selection['name'],
+                                        onSaved: (val) {},
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 10.0,
+                            ),
+                            child: Table(
+                              children: [
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: TextFormField(
+                                        readOnly: true,
+                                        initialValue: e['batchNo'],
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          labelText: 'Batch No',
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.always,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: TextFormField(
+                                        readOnly: true,
+                                        initialValue:
+                                            constants.defaultDate.format(
+                                          DateTime.parse(e['expiry']),
+                                        ),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          labelText: 'Expiry',
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.always,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 5.0,
+                                      ),
+                                      child: Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: TextFormField(
+                                          readOnly: true,
+                                          initialValue: e['mrp'].toString(),
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            labelText: 'MRP',
+                                            floatingLabelBehavior:
+                                                FloatingLabelBehavior.always,
+                                          ),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyText2,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ),
+                                    Directionality(
+                                      textDirection: TextDirection.rtl,
+                                      child: TextFormField(
+                                        readOnly: true,
+                                        initialValue: e['closing'].toString(),
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          labelText: 'Stock',
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.always,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2,
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  Table(
-                    children: [
-                      TableRow(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 30.0),
-                            child: Text(
-                              'Tax %',
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                          ),
-                          Container(
-                            padding: EdgeInsets.only(left: 8.0),
-                            child: AutocompleteFormField(
-                              outlineInputBorder: false,
-                              autoFocus: false,
-                              focusNode: null,
-                              controller: _taxController,
-                              autocompleteCallback: (pattern) {
-                                return _getTaxList(pattern);
-                              },
-                              validator: (val) {
-                                return null;
-                              },
-                              labelText: '',
-                              labelStyle: TextStyle(
-                                color: Theme.of(context).errorColor,
-                              ),
-                              suggestionFormatter: (suggestion) =>
-                                  suggestion['displayName'],
-                              textFormatter: (selection) =>
-                                  selection['displayName'],
-                              onSaved: (val) {},
-                              onSelected: (val) {
-                                _selectedTax = val;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Table(
-                    children: [
-                      TableRow(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 20.0),
-                            child: Text(
-                              'Total Amount',
-                              style: Theme.of(context).textTheme.bodyText1,
-                            ),
-                          ),
-                          TextFormField(
-                            decoration: InputDecoration(
-                              isDense: true,
-                            ),
-                            keyboardType: TextInputType.number,
-                            style: Theme.of(context).textTheme.bodyText1,
-                            onSaved: (val) {},
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                    ),
+                    SizedBox(
+                      height: 20.0,
+                    ),
+                  ],
+                );
+              },
+            ).toList(),
             SizedBox(
-              height: 20.0,
+              height: 15.0,
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _batchDetail() {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 6.0,
-        vertical: 0.0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Batch No',
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  SizedBox(
-                    width: 10.0,
-                  ),
-                  Text(
-                    'VC01',
-                    style: Theme.of(context).textTheme.headline5,
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: 5.0,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Expiry',
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  SizedBox(
-                    width: 10.0,
-                  ),
-                  Text(
-                    '05-06-2023',
-                    style: Theme.of(context).textTheme.headline5,
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: 5.0,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Stock',
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  SizedBox(
-                    width: 10.0,
-                  ),
-                  Text(
-                    '12',
-                    style: Theme.of(context).textTheme.headline5,
-                    textAlign: TextAlign.right,
-                  ),
-                ],
-              ),
-              SizedBox(
-                width: 5.0,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'MRP',
-                    style: Theme.of(context).textTheme.subtitle2,
-                  ),
-                  SizedBox(
-                    width: 10.0,
-                  ),
-                  Text(
-                    '86532325.25',
-                    style: Theme.of(context).textTheme.headline5,
-                    textAlign: TextAlign.right,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(
-            height: 10.0,
-          ),
-        ],
       ),
     );
   }
@@ -587,8 +629,16 @@ class _SaleItemFormScreenState extends State<SaleItemFormScreen> {
             child: Column(
               children: [
                 _itemInfo(),
-                _qtyRateInfo(),
-                _totalInfo(),
+                _isLoading == true
+                    ? Container(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
+                    : Visibility(
+                        child: _batchInfo(),
+                        visible: _inventoryBatches.isNotEmpty,
+                      ),
               ],
             ),
           ),
